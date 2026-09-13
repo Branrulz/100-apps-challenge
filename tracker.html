@@ -62,6 +62,15 @@
   .cell.video { background: var(--video); }
   .cell.video .n, .cell.video .t { color: #032b14; }
   .cell.has-name { color: var(--text); }
+  .cell.dead { opacity: .55; }
+  .cell.dead::after {
+    content: ''; position: absolute; left: -10%; top: 50%; width: 120%; height: 4px;
+    background: #ff2d2d; transform: rotate(-45deg); box-shadow: 0 0 0 1px rgba(0,0,0,.4);
+  }
+  .row.dead .name { text-decoration: line-through; text-decoration-color: #ff2d2d; text-decoration-thickness: 2px; color: var(--muted); }
+  .pill.dead { background: #ff2d2d; color: #fff; }
+  .check { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 14px; }
+  .check input { width: 18px; height: 18px; accent-color: #ff2d2d; }
 
   h2 { font-size: 18px; margin: 32px 0 12px; }
   .list { display: flex; flex-direction: column; gap: 8px; }
@@ -111,6 +120,7 @@
     <span><i style="background:var(--shipped)"></i>Shipped</span>
     <span><i style="background:var(--building)"></i>Building</span>
     <span><i style="background:var(--idea)"></i>Idea / empty</span>
+    <span><i style="background:linear-gradient(-45deg, transparent 42%, #ff2d2d 42%, #ff2d2d 58%, transparent 58%) var(--idea)"></i>Abandoned</span>
   </div>
 
   <div class="toolbar">
@@ -133,6 +143,9 @@
 
   <h2>Idea backlog</h2>
   <div class="list" id="ideaList"></div>
+
+  <h2>Abandoned</h2>
+  <div class="list" id="deadList"></div>
   <p class="hint">Data is saved in this browser automatically. Hit <b>Export JSON</b> now and then and keep the file next to this page so nothing is lost.</p>
 </main>
 
@@ -164,6 +177,7 @@
       <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
       <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
     </div>
+    <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
     <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
     <div class="actions">
       <button class="danger" id="clearBtn">Clear slot</button>
@@ -242,7 +256,8 @@
 
   function counts() {
     const c = { idea: 0, building: 0, shipped: 0, video: 0, named: 0 };
-    for (const a of state.apps) { if (a.name) c.named++; if (a.status) c[a.status]++; }
+    c.dead = 0;
+    for (const a of state.apps) { if (a.name) c.named++; if (a.dead) { c.dead++; continue; } if (a.status) c[a.status]++; }
     c.done = c.shipped + c.video;
     return c;
   }
@@ -272,7 +287,7 @@
     const cards = [
       ['Apps shipped', `${c.done} / ${TOTAL}`, pace],
       ['Videos published', c.video, ''],
-      ['In progress', c.building, `${c.idea} ideas waiting`],
+      ['In progress', c.building, `${c.idea} ideas waiting` + (c.dead ? `, ${c.dead} abandoned` : '')],
       ['Days in', daysIn === null ? '—' : daysIn, daysLeft === null ? 'set a target date' : (daysLeft >= 0 ? `${daysLeft} days left` : `${-daysLeft} days over`)],
       ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, needed],
       ['Revenue', '$' + revenue.toFixed(2), 'across all apps'],
@@ -287,18 +302,23 @@
 
   function renderGrid() {
     $('grid').innerHTML = state.apps.map(a => {
-      const cls = ['cell', a.status && a.status !== 'idea' ? a.status : '', a.name ? 'has-name' : ''].join(' ');
-      const title = a.name ? `${a.n}. ${a.name}${a.status ? ' — ' + STATUS_LABEL[a.status] : ''}` : `App #${a.n} — empty`;
+      const cls = ['cell', a.status && a.status !== 'idea' ? a.status : '', a.name ? 'has-name' : '', a.dead ? 'dead' : ''].join(' ');
+      const title = a.name ? `${a.n}. ${a.name}${a.dead ? ' — Abandoned' : a.status ? ' — ' + STATUS_LABEL[a.status] : ''}` : `App #${a.n} — empty`;
       return `<div class="${cls}" data-n="${a.n}" title="${esc(title)}"><div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
     }).join('');
   }
 
   function rowHtml(a, metaFn) {
-    return `<div class="row" data-n="${a.n}"><span class="num">#${a.n}</span><span class="name">${esc(a.name || '(untitled)')}</span>` +
-      `<span class="meta">${metaFn(a)}</span><span class="pill ${a.status}">${STATUS_LABEL[a.status]}</span></div>`;
+    const pill = a.dead ? '<span class="pill dead">Abandoned</span>' : `<span class="pill ${a.status}">${STATUS_LABEL[a.status]}</span>`;
+    return `<div class="row${a.dead ? ' dead' : ''}" data-n="${a.n}"><span class="num">#${a.n}</span><span class="name">${esc(a.name || '(untitled)')}</span>` +
+      `<span class="meta">${metaFn(a)}</span>${pill}</div>`;
   }
   function renderLists() {
-    const apps = state.apps;
+    const apps = state.apps.filter(a => !a.dead);
+    const dead = state.apps.filter(a => a.dead && a.name);
+    $('deadList').innerHTML = dead.length
+      ? dead.map(a => rowHtml(a, x => x.notes ? esc(x.notes.slice(0, 80)) : (x.pitch || ''))).join('')
+      : '<div class="empty">Nothing dropped. Tick "Not moving forward" on an app to park it here.</div>';
     const building = apps.filter(a => a.status === 'building');
     const done = apps.filter(a => a.status === 'shipped' || a.status === 'video')
       .sort((x, y) => (y.shipped || '').localeCompare(x.shipped || '') || y.n - x.n);
@@ -329,6 +349,7 @@
     const a = state.apps[n - 1];
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
+    $('f_dead').checked = !!a.dead;
     $('overlay').classList.add('open');
     $('f_name').focus();
   }
@@ -336,6 +357,7 @@
   $('saveBtn').onclick = () => {
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
+    if ($('f_dead').checked) a.dead = true;
     if (!a.name && a.status === 'idea') delete a.status;
     if (a.status === 'building' && !a.started) a.started = todayStr();
     if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
