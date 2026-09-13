@@ -1,2 +1,11 @@
 Thumbs.db
 desktop.ini
+# video files are too big for git
+videos/**/raw/*
+videos/**/export/*
+videos/_shared/*
+!videos/**/.keep
+*.mp4
+*.mov
+*.MP4
+*.wav
