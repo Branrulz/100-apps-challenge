@@ -45,7 +45,5 @@ Things from the plant floor that nobody has built well yet:
 
 ## Queued (in the tracker)
 
-7. PLC Signal Scaler
-8. Shift Pay Calculator
-9. Motor & Wire Sizer
-10. Downtime Logger
+7. Shift Pay Calculator
+8. Motor & Wire Sizer
