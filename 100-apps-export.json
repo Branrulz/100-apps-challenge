@@ -1,0 +1,348 @@
+{
+  "apps": [
+    {
+      "n": 1,
+      "name": "JakeFirework",
+      "pitch": "WiFi-controlled firework spinner rig with a phone deadman interlock",
+      "status": "building",
+      "tech": "Arduino UNO Q (STM32 + Python) / Flutter",
+      "started": "2026-02-07",
+      "hours": "6",
+      "notes": "Co worker idea who stopped contact with me."
+    },
+    {
+      "n": 2,
+      "name": "ChartinSpace",
+      "pitch": "Unicorn toot-platformer game",
+      "status": "building",
+      "tech": "Flutter (ported from Unity)",
+      "started": "2026-05-05",
+      "hours": "11",
+      "notes": "Unity I also learned differnet angles for chara developement."
+    },
+    {
+      "n": 3,
+      "name": "Haynes Exchange",
+      "pitch": "Automated trading bot for Kalshi prediction markets",
+      "status": "building",
+      "tech": "Python / Kalshi API",
+      "started": "2026-09-04",
+      "notes": "API, I did not know what an API was before I started"
+    },
+    {
+      "n": 4,
+      "name": "Flock Camera Tracker",
+      "pitch": "Map of ALPR / Flock cameras with state-by-state laws",
+      "status": "video",
+      "tech": "Web app + OpenStreetMap data pipeline",
+      "shipped": "2026-09-13",
+      "video": "https://www.youtube.com/@FlockCameraTracker",
+      "notes": "I learned how to navigate google play console. The diffculty of getting 12 friends to log onto the app for a closed testing.",
+      "started": "2026-09-09"
+    },
+    {
+      "n": 5,
+      "name": "PLC Troubleshooter",
+      "pitch": "Vendor-neutral PLC fault-finding trainer with 40 scenarios",
+      "status": "shipped",
+      "tech": "JavaScript / Node",
+      "shipped": "2026-09-13",
+      "hours": "18",
+      "notes": "Had issues with Google Play syncing up with testing. Learned how to produce a free app with a paid unlock. Also how to setup promo keys.",
+      "started": "2026-09-10"
+    },
+    {
+      "n": 6,
+      "name": "100 Apps",
+      "pitch": "Companion app for the channel: factory-style \"days since\" counters and the shower-counter gag",
+      "tech": "TBD",
+      "status": "building",
+      "started": "2026-09-13"
+    },
+    {
+      "n": 7
+    },
+    {
+      "n": 8
+    },
+    {
+      "n": 9
+    },
+    {
+      "n": 10
+    },
+    {
+      "n": 11
+    },
+    {
+      "n": 12
+    },
+    {
+      "n": 13
+    },
+    {
+      "n": 14
+    },
+    {
+      "n": 15
+    },
+    {
+      "n": 16
+    },
+    {
+      "n": 17
+    },
+    {
+      "n": 18
+    },
+    {
+      "n": 19
+    },
+    {
+      "n": 20
+    },
+    {
+      "n": 21
+    },
+    {
+      "n": 22
+    },
+    {
+      "n": 23
+    },
+    {
+      "n": 24
+    },
+    {
+      "n": 25
+    },
+    {
+      "n": 26
+    },
+    {
+      "n": 27
+    },
+    {
+      "n": 28
+    },
+    {
+      "n": 29
+    },
+    {
+      "n": 30
+    },
+    {
+      "n": 31
+    },
+    {
+      "n": 32
+    },
+    {
+      "n": 33
+    },
+    {
+      "n": 34
+    },
+    {
+      "n": 35
+    },
+    {
+      "n": 36
+    },
+    {
+      "n": 37
+    },
+    {
+      "n": 38
+    },
+    {
+      "n": 39
+    },
+    {
+      "n": 40
+    },
+    {
+      "n": 41
+    },
+    {
+      "n": 42
+    },
+    {
+      "n": 43
+    },
+    {
+      "n": 44
+    },
+    {
+      "n": 45
+    },
+    {
+      "n": 46
+    },
+    {
+      "n": 47
+    },
+    {
+      "n": 48
+    },
+    {
+      "n": 49
+    },
+    {
+      "n": 50
+    },
+    {
+      "n": 51
+    },
+    {
+      "n": 52
+    },
+    {
+      "n": 53
+    },
+    {
+      "n": 54
+    },
+    {
+      "n": 55
+    },
+    {
+      "n": 56
+    },
+    {
+      "n": 57
+    },
+    {
+      "n": 58
+    },
+    {
+      "n": 59
+    },
+    {
+      "n": 60
+    },
+    {
+      "n": 61
+    },
+    {
+      "n": 62
+    },
+    {
+      "n": 63
+    },
+    {
+      "n": 64
+    },
+    {
+      "n": 65
+    },
+    {
+      "n": 66
+    },
+    {
+      "n": 67
+    },
+    {
+      "n": 68
+    },
+    {
+      "n": 69
+    },
+    {
+      "n": 70
+    },
+    {
+      "n": 71
+    },
+    {
+      "n": 72
+    },
+    {
+      "n": 73
+    },
+    {
+      "n": 74
+    },
+    {
+      "n": 75
+    },
+    {
+      "n": 76
+    },
+    {
+      "n": 77
+    },
+    {
+      "n": 78
+    },
+    {
+      "n": 79
+    },
+    {
+      "n": 80
+    },
+    {
+      "n": 81
+    },
+    {
+      "n": 82
+    },
+    {
+      "n": 83
+    },
+    {
+      "n": 84
+    },
+    {
+      "n": 85
+    },
+    {
+      "n": 86
+    },
+    {
+      "n": 87
+    },
+    {
+      "n": 88
+    },
+    {
+      "n": 89
+    },
+    {
+      "n": 90
+    },
+    {
+      "n": 91
+    },
+    {
+      "n": 92
+    },
+    {
+      "n": 93
+    },
+    {
+      "n": 94
+    },
+    {
+      "n": 95
+    },
+    {
+      "n": 96
+    },
+    {
+      "n": 97
+    },
+    {
+      "n": 98
+    },
+    {
+      "n": 99
+    },
+    {
+      "n": 100
+    }
+  ],
+  "startDate": "2026-09-13",
+  "targetDate": "",
+  "fixedOrder": 2
+}

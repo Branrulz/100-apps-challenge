@@ -182,11 +182,11 @@
   const STATUS_LABEL = { idea: 'Idea', building: 'Building', shipped: 'Shipped', video: 'Video published' };
 
   const SEED = [
-    { name: 'JakeFirework', pitch: 'WiFi-controlled firework spinner rig with a phone deadman interlock', tech: 'Arduino UNO Q (STM32 + Python) / Flutter', status: 'shipped' },
-    { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer with 40 scenarios', tech: 'JavaScript / Node', status: 'shipped' },
-    { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped' },
-    { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped' },
-    { name: 'Haynes Exchange', pitch: 'Automated trading bot for Kalshi prediction markets', tech: 'Python / Kalshi API', status: 'shipped' },
+    { name: 'JakeFirework', pitch: 'WiFi-controlled firework spinner rig with a phone deadman interlock', tech: 'Arduino UNO Q (STM32 + Python) / Flutter', status: 'shipped', started: '2026-02-07' },
+    { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped', started: '2026-05-05' },
+    { name: 'Haynes Exchange', pitch: 'Automated trading bot for Kalshi prediction markets', tech: 'Python / Kalshi API', status: 'shipped', started: '2026-09-04' },
+    { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped', started: '2026-09-09' },
+    { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer with 40 scenarios', tech: 'JavaScript / Node', status: 'shipped', started: '2026-09-10' },
     { name: '100 Apps', pitch: 'Companion app for the channel: factory-style "days since" counters and the shower-counter gag', tech: 'TBD', status: 'building', started: '2026-09-13' },
   ];
   let state = load();
@@ -219,6 +219,17 @@
     if (ds) { ds.name = '100 Apps'; ds.pitch = SEED[5].pitch; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
       s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
+    if (s.fixedOrder !== 2) {
+      const dates = {"JakeFirework": "2026-02-07", "ChartinSpace": "2026-05-05", "Haynes Exchange": "2026-09-04", "Flock Camera Tracker": "2026-09-09", "PLC Troubleshooter": "2026-09-10", "100 Apps": "2026-09-13"};
+      for (const a of s.apps) {
+        if (a.name in dates && (!a.started || a.name === 'Haynes Exchange' || a.name === '100 Apps')) a.started = dates[a.name];
+      }
+      const named = s.apps.filter(a => a.name), empty = s.apps.filter(a => !a.name);
+      named.sort((x, y) => (x.started || '9999').localeCompare(y.started || '9999') || x.n - y.n);
+      s.apps = named.concat(empty).map((a, i) => Object.assign({}, a, { n: i + 1 }));
+      s.fixedOrder = 2;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     return s;
