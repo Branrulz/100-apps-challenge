@@ -30,6 +30,8 @@
   .week .hdr span:last-child { color: var(--accent2); }
   .week .apps { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
   .week .apps b { color: var(--text); font-weight: 500; }
+  .week .split { margin-top: 3px; }
+  .week .warn { color: var(--accent); }
   .week .other { display: flex; gap: 4px; align-items: center; margin-top: 4px; font-size: 11px; color: var(--muted); }
   .week .other input.hrs { width: 58px; }
   .modal-costs input.wk { width: 100%; padding: 6px 8px; font-size: 13px; }
@@ -296,7 +298,7 @@
   function blank() {
     const apps = Array.from({ length: TOTAL }, (_, i) => ({ n: i + 1 }));
     SEED.forEach((a, i) => { apps[i] = Object.assign({ n: i + 1 }, a); });
-    return { apps, startDate: '', targetDate: '', weeks: [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
+    return { apps, startDate: '', targetDate: '', weeksV2: true, weeks: [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
   }
   function load() {
     try {
@@ -320,6 +322,17 @@
     if (ds) { ds.name = '100 Apps'; ds.pitch = SEED[5].pitch; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
     if (s.weeks) {
       for (const w of s.weeks) if (w.week === '2026-09-07' && Number(w.hours) === 90) w.week = '2026-09-06';
+    }
+    if (s.weeks && !s.weeksV2) {
+      const w90 = s.weeks.find(w => w.week === '2026-09-06' && Number(w.hours) === 90);
+      if (w90) {
+        for (const a of s.apps) for (const w of a.weeks || []) {
+          if (w.week === '2026-09-13' && !(a.weeks || []).some(x => x.week === '2026-09-06')) w.week = '2026-09-06';
+        }
+        s.weeks = s.weeks.filter(w => !(w.week === '2026-09-13' && !(Number(w.hours) || 0) && !w.note));
+      }
+      s.weeksV2 = true;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     if (!s.weeks) {
       s.weeks = [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }];
@@ -465,9 +478,10 @@
   function appCostsTotal() { return state.apps.reduce((t, a) => t + costTotal(a.costs), 0); }
   function grandTotal() { return costTotal(state.costs) + appCostsTotal(); }
   function updateAppCostTotal() { $('appCostTotal').textContent = '$' + costTotal(readRows('appCostRows')).toFixed(2); }
-  // Weekly hours. Two sources, rolled up by week (Sunday start):
-  //   state.weeks = [{week, hours, note}]   "other" hours not tied to an app, edited in the panel
+  // Weekly hours, rolled up by week (Sunday start):
+  //   state.weeks = [{week, hours, note}]   hours = the week's TOTAL, typed in the panel
   //   app.weeks   = [{week, hours}]         per-app hours, edited inside the square
+  // other = total - app hours. If app hours exceed the typed total, the total follows the apps.
   function weekStart(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x.toISOString().slice(0, 10); }
   function plusDays(iso, n) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
   function fmtH(h) { return (h % 1 ? h.toFixed(1) : h) + ' h'; }
@@ -478,14 +492,19 @@
   // [{week, other, note, apps: [{n, name, hours}], total}] sorted by week
   function weekRollup() {
     const map = {};
-    const get = k => map[k] || (map[k] = { week: k, other: 0, note: '', apps: [], total: 0 });
-    for (const w of state.weeks || []) { if (!w.week) continue; const r = get(w.week); r.other += Number(w.hours) || 0; if (w.note) r.note = w.note; }
+    const get = k => map[k] || (map[k] = { week: k, typed: 0, other: 0, note: '', apps: [], total: 0, over: false });
+    for (const w of state.weeks || []) { if (!w.week) continue; const r = get(w.week); r.typed += Number(w.hours) || 0; if (w.note) r.note = w.note; }
     for (const a of state.apps) for (const w of a.weeks || []) {
       const h = Number(w.hours) || 0; if (!w.week || !h) continue;
       get(w.week).apps.push({ n: a.n, name: a.name || '', hours: h });
     }
     const rows = Object.values(map).sort((x, y) => x.week.localeCompare(y.week));
-    for (const r of rows) r.total = r.other + r.apps.reduce((t, x) => t + x.hours, 0);
+    for (const r of rows) {
+      r.appSum = r.apps.reduce((t, x) => t + x.hours, 0);
+      r.over = r.typed > 0 && r.appSum > r.typed;
+      r.total = Math.max(r.typed, r.appSum);
+      r.other = r.total - r.appSum;
+    }
     return rows;
   }
   function weekTotal() { return weekRollup().reduce((t, r) => t + r.total, 0); }
@@ -504,8 +523,9 @@
       const el = document.createElement('div'); el.className = 'week'; el.dataset.week = r.week;
       el.innerHTML =
         `<div class="hdr"><input type="date" class="wk" title="Sunday the week starts"><span>${fmtH(r.total)}</span></div>` +
+        `<div class="other">week total <input class="hrs" type="number" min="0" step="0.5" placeholder="0"> <button class="x" type="button" title="Remove this week">✕</button></div>` +
         (r.apps.length ? `<div class="apps">${r.apps.map(x => `<b>#${x.n} ${esc(x.name)}</b> ${fmtH(x.hours)}`).join(' · ')}</div>` : '') +
-        `<div class="other">other <input class="hrs" type="number" min="0" step="0.5" placeholder="0"> <button class="x" type="button" title="Remove this week">✕</button></div>` +
+        `<div class="apps split">${splitText(r)}</div>` +
         `<input class="note" placeholder="what happened this week">` +
         `<div class="barbg"><div class="barfg" style="width:${100 * r.total / max}%"></div></div>`;
       el.querySelector('.wk').value = r.week;
@@ -518,7 +538,7 @@
         for (const a of state.apps) for (const w of a.weeks || []) if (w.week === r.week) w.week = to;
         persist(); renderWeeks(); renderStats();
       });
-      el.querySelector('.hrs').value = r.other || '';
+      el.querySelector('.hrs').value = r.typed || '';
       el.querySelector('.note').value = r.note;
       el.querySelector('.hrs').addEventListener('input', refreshWeeks);
       el.querySelector('.note').addEventListener('input', refreshWeeks);
@@ -531,6 +551,10 @@
     }
     $('weekTotal').textContent = fmtH(weekTotal());
   }
+  function splitText(r) {
+    if (r.over) return `<span class="warn">apps add up to ${fmtH(r.appSum)}, more than the ${fmtH(r.typed)} typed</span>`;
+    return `apps ${fmtH(r.appSum)} · other ${fmtH(r.other)}`;
+  }
   // Typing in the panel: persist and refresh numbers without rebuilding the rows under the cursor.
   function refreshWeeks() {
     state.weeks = readPanelWeeks();
@@ -539,6 +563,7 @@
     document.querySelectorAll('#weekRows .week').forEach(el => {
       const r = rows.find(x => x.week === el.dataset.week); if (!r) return;
       el.querySelector('.hdr span:last-child').textContent = fmtH(r.total);
+      el.querySelector('.split').innerHTML = splitText(r);
       el.querySelector('.barfg').style.width = (100 * r.total / max) + '%';
     });
     $('weekTotal').textContent = fmtH(weekTotal());
@@ -580,9 +605,10 @@
   }
   $('addAppWeek').onclick = () => {
     const have = readAppWeeks().map(w => w.week).sort();
-    let next = weekStart(new Date());
+    const logged = weekRollup().map(r => r.week);
+    let next = logged.length ? logged[logged.length - 1] : weekStart(new Date());
     const last = have[have.length - 1];
-    if (last) { const n = plusDays(last, 7); if (n <= next) next = n; }
+    if (last) { const n = plusDays(last, 7); next = n <= weekStart(new Date()) ? n : last; }
     addAppWeekRow({ week: next }).querySelector('.hrs').focus();
   };
 
