@@ -25,7 +25,8 @@
   .week input[type=date] { flex: 1; padding: 5px 6px; font-size: 12px; }
   .week input.hrs { width: 58px; text-align: right; padding: 5px 6px; font-size: 13px; }
   .week input.note { width: 100%; margin-top: 4px; padding: 4px 6px; font-size: 12px; }
-  .week .hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 600; }
+  .week .hdr { display: flex; justify-content: space-between; align-items: center; gap: 6px; font-size: 13px; font-weight: 600; }
+  .week .hdr input.wk { flex: 1; min-width: 0; padding: 4px 6px; font-size: 12px; font-weight: 600; }
   .week .hdr span:last-child { color: var(--accent2); }
   .week .apps { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
   .week .apps b { color: var(--text); font-weight: 500; }
@@ -200,7 +201,6 @@
   </div>
   <aside class="costs weeks">
     <h3>Weekly hours</h3>
-    <p class="sub">Sunday to Saturday. App hours come from each square; "other" is everything else.</p>
     <div id="weekRows"></div>
     <button id="addWeek" type="button">+ Add week</button>
     <div class="total"><span>Total</span><span id="weekTotal">0 h</span></div>
@@ -485,11 +485,21 @@
     for (const r of rows) {
       const el = document.createElement('div'); el.className = 'week'; el.dataset.week = r.week;
       el.innerHTML =
-        `<div class="hdr"><span>${fmt(r.week)} to ${fmt(plusDays(r.week, 6))}</span><span>${fmtH(r.total)}</span></div>` +
-        `<div class="apps">${r.apps.length ? r.apps.map(x => `<b>#${x.n} ${esc(x.name)}</b> ${fmtH(x.hours)}`).join(' · ') : '<i>no app hours yet</i>'}</div>` +
+        `<div class="hdr"><input type="date" class="wk" title="Sunday the week starts"><span>${fmtH(r.total)}</span></div>` +
+        (r.apps.length ? `<div class="apps">${r.apps.map(x => `<b>#${x.n} ${esc(x.name)}</b> ${fmtH(x.hours)}`).join(' · ')}</div>` : '') +
         `<div class="other">other <input class="hrs" type="number" min="0" step="0.5" placeholder="0"> <button class="x" type="button" title="Remove this week">✕</button></div>` +
         `<input class="note" placeholder="what happened this week">` +
         `<div class="barbg"><div class="barfg" style="width:${100 * r.total / max}%"></div></div>`;
+      el.querySelector('.wk').value = r.week;
+      el.querySelector('.wk').addEventListener('change', e => {
+        const to = e.target.value ? weekStart(e.target.value + 'T00:00:00') : r.week;
+        if (to === r.week) { e.target.value = r.week; return; }
+        if (weekRollup().some(x => x.week === to)) { alert('There is already a week starting ' + fmt(to) + '.'); e.target.value = r.week; return; }
+        // move the whole week: "other" entry and every app's hours for that week
+        for (const w of state.weeks || []) if (w.week === r.week) w.week = to;
+        for (const a of state.apps) for (const w of a.weeks || []) if (w.week === r.week) w.week = to;
+        persist(); renderWeeks(); renderStats();
+      });
       el.querySelector('.hrs').value = r.other || '';
       el.querySelector('.note').value = r.note;
       el.querySelector('.hrs').addEventListener('input', refreshWeeks);
