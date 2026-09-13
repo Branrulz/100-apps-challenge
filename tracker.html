@@ -114,6 +114,8 @@
   .cell.video { background: var(--video); }
   .cell.video .n, .cell.video .t { color: #032b14; }
   .cell.has-name { color: var(--text); }
+  .cell .star { position: absolute; top: 3px; left: 0; right: 0; text-align: center; font-size: 13px; line-height: 1; color: #ffd23f; text-shadow: 0 0 3px rgba(0,0,0,.6); pointer-events: none; }
+  .row .star { color: #ffd23f; margin-right: 6px; }
   .cell.dead { opacity: .55; }
   .cell.dead::after {
     content: ''; position: absolute; left: -10%; top: 50%; width: 120%; height: 4px;
@@ -184,6 +186,7 @@
     <span><i style="background:var(--building)"></i>Building</span>
     <span><i style="background:var(--idea)"></i>Idea / empty</span>
     <span><i style="background:linear-gradient(-45deg, transparent 42%, #ff2d2d 42%, #ff2d2d 58%, transparent 58%) var(--idea)"></i>Abandoned</span>
+    <span><span style="color:#ffd23f;margin-right:6px">★</span>On Google Play</span>
   </div>
 
   <div class="toolbar">
@@ -258,6 +261,7 @@
       <button id="addAppCost" type="button">+ Add cost</button>
       <div class="total"><span>App total</span><span id="appCostTotal">$0.00</span></div>
     </div>
+    <label class="check"><input type="checkbox" id="f_play"> Published on Google Play</label>
     <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
     <div class="field" style="margin-bottom:6px"><label>Notes</label></div>
     <div class="notes">
@@ -417,14 +421,14 @@
   function renderGrid() {
     $('grid').innerHTML = state.apps.map(a => {
       const cls = ['cell', a.status && a.status !== 'idea' ? a.status : '', a.name ? 'has-name' : '', a.dead ? 'dead' : ''].join(' ');
-      const title = a.name ? `${a.n}. ${a.name}${a.dead ? ' — Abandoned' : a.status ? ' — ' + STATUS_LABEL[a.status] : ''}` : `App #${a.n} — empty`;
-      return `<div class="${cls}" data-n="${a.n}" title="${esc(title)}"><div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
+      const title = a.name ? `${a.n}. ${a.name}${a.dead ? ' — Abandoned' : a.status ? ' — ' + STATUS_LABEL[a.status] : ''}${a.play ? ' — on Google Play' : ''}` : `App #${a.n} — empty`;
+      return `<div class="${cls}" data-n="${a.n}" title="${esc(title)}">${a.play ? '<div class="star">★</div>' : ''}<div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
     }).join('');
   }
 
   function rowHtml(a, metaFn) {
     const pill = a.dead ? '<span class="pill dead">Abandoned</span>' : `<span class="pill ${a.status}">${STATUS_LABEL[a.status]}</span>`;
-    return `<div class="row${a.dead ? ' dead' : ''}" data-n="${a.n}"><span class="num">#${a.n}</span><span class="name">${esc(a.name || '(untitled)')}</span>` +
+    return `<div class="row${a.dead ? ' dead' : ''}" data-n="${a.n}"><span class="num">#${a.n}</span><span class="name">${a.play ? '<span class="star" title="On Google Play">★</span>' : ''}${esc(a.name || '(untitled)')}</span>` +
       `<span class="meta">${metaFn(a)}</span>${pill}</div>`;
   }
   function renderLists() {
@@ -658,6 +662,7 @@
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
+    $('f_play').checked = !!a.play;
     modalLog = (a.log || []).map(n => ({ date: n.date, text: n.text }));
     if (!a.log && a.notes) modalLog.push({ date: a.shipped || a.started || todayStr(), text: a.notes });
     $('noteDate').value = todayStr(); $('noteText').value = '';
@@ -676,6 +681,7 @@
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
+    if ($('f_play').checked) a.play = true;
     // an unsaved note still sitting in the box counts too
     if ($('noteText').value.trim()) modalLog.push({ date: $('noteDate').value || todayStr(), text: $('noteText').value.trim() });
     if (modalLog.length) { a.log = modalLog; a.notes = modalLog.map(n => n.text).join(' | '); }
