@@ -192,7 +192,7 @@
   </div>
   <aside class="costs weeks">
     <h3>Weekly hours</h3>
-    <p class="sub">What each week took.</p>
+    <p class="sub">Sunday to Saturday. Date is the Sunday the week starts.</p>
     <div id="weekRows"></div>
     <button id="addWeek" type="button">+ Add week</button>
     <div class="total"><span>Total</span><span id="weekTotal">0 h</span></div>
@@ -265,7 +265,7 @@
   function blank() {
     const apps = Array.from({ length: TOTAL }, (_, i) => ({ n: i + 1 }));
     SEED.forEach((a, i) => { apps[i] = Object.assign({ n: i + 1 }, a); });
-    return { apps, startDate: '', targetDate: '', weeks: [{ week: '2026-09-07', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
+    return { apps, startDate: '', targetDate: '', weeks: [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
   }
   function load() {
     try {
@@ -287,8 +287,11 @@
     }
     const ds = s.apps.find(a => a.name === 'Days Since');
     if (ds) { ds.name = '100 Apps'; ds.pitch = SEED[5].pitch; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+    if (s.weeks) {
+      for (const w of s.weeks) if (w.week === '2026-09-07' && Number(w.hours) === 90) w.week = '2026-09-06';
+    }
     if (!s.weeks) {
-      s.weeks = [{ week: '2026-09-07', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }];
+      s.weeks = [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }];
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
@@ -332,7 +335,8 @@
     const appHours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
     const wk = weekTotal();
     const hours = wk || appHours;
-    const thisWeek = (state.weeks || []).find(w => w.week === mondayOf(new Date()));
+    const latest = (state.weeks || []).slice().sort((a, b) => (b.week || '').localeCompare(a.week || ''))[0];
+    const thisWeek = latest && latest.week === weekStart(new Date()) ? latest : null;
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
     const spent = grandTotal();
     const net = revenue - spent;
@@ -354,7 +358,7 @@
       ['Videos published', c.video, ''],
       ['In progress', c.building, `${c.idea} ideas waiting` + (c.dead ? `, ${c.dead} abandoned` : '')],
       ['Days in', daysIn === null ? '—' : daysIn, daysLeft === null ? 'set a target date' : (daysLeft >= 0 ? `${daysLeft} days left` : `${-daysLeft} days over`)],
-      ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, thisWeek ? `${thisWeek.hours} this week` : needed],
+      ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, thisWeek ? `${thisWeek.hours} this week` : latest ? `${latest.hours} week of ${fmt(latest.week)}` : needed],
       ['Revenue', '$' + revenue.toFixed(2), 'across all apps'],
       ['Spent', '$' + spent.toFixed(2), `net ${net < 0 ? '-' : ''}$${Math.abs(net).toFixed(2)}`],
     ];
@@ -432,7 +436,8 @@
   function updateAppCostTotal() { $('appCostTotal').textContent = '$' + costTotal(readRows('appCostRows')).toFixed(2); }
   // Weekly hours log. state.weeks = [{week: 'YYYY-MM-DD' (Monday), hours, note}]
   function weekTotal() { return (state.weeks || []).reduce((t, w) => t + (Number(w.hours) || 0), 0); }
-  function mondayOf(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x.toISOString().slice(0, 10); }
+  // Weeks run Sunday to Saturday. weekStart() gives the Sunday on or before a date.
+  function weekStart(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x.toISOString().slice(0, 10); }
   function commitWeeks() {
     state.weeks = [...document.querySelectorAll('#weekRows .week')].map(el => ({
       week: el.querySelector('.wk').value, hours: Number(el.querySelector('.hrs').value) || 0, note: el.querySelector('.note').value.trim()
@@ -448,13 +453,14 @@
   function fmtH(h) { return (h % 1 ? h.toFixed(1) : h) + ' h'; }
   function addWeekRow(w = {}) {
     const el = document.createElement('div'); el.className = 'week';
-    el.innerHTML = `<div class="top"><input type="date" class="wk" title="Week starting"><input class="hrs" type="number" min="0" step="0.5" placeholder="hrs"><button class="x" type="button" title="Remove">✕</button></div>` +
+    el.innerHTML = `<div class="top"><input type="date" class="wk" title="Sunday the week starts"><input class="hrs" type="number" min="0" step="0.5" placeholder="hrs"><button class="x" type="button" title="Remove">✕</button></div>` +
       `<input class="note" placeholder="what happened this week"><div class="barbg"><div class="barfg"></div></div>`;
     el.querySelector('.wk').value = w.week || '';
     el.querySelector('.hrs').value = w.hours ?? '';
     el.querySelector('.note').value = w.note || '';
     el.querySelector('.x').onclick = () => { if (confirm('Remove this week?')) { el.remove(); commitWeeks(); } };
     el.addEventListener('input', commitWeeks);
+    el.querySelector('.wk').addEventListener('change', e => { if (e.target.value) { e.target.value = weekStart(e.target.value + 'T00:00:00'); commitWeeks(); } });
     $('weekRows').appendChild(el);
     return el;
   }
@@ -467,7 +473,7 @@
   }
   $('addWeek').onclick = () => {
     const last = (state.weeks || []).map(w => w.week).sort().pop();
-    let next = mondayOf(new Date());
+    let next = weekStart(new Date());
     if (last) { const d = new Date(last + 'T00:00:00'); d.setDate(d.getDate() + 7); if (d <= new Date()) next = d.toISOString().slice(0, 10); }
     addWeekRow({ week: next }).querySelector('.hrs').focus();
   };
