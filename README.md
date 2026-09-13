@@ -1,5 +1,7 @@
 # 100 Apps Challenge
 
+YouTube: **Blue Collar to Code**
+
 **Blue collar to app builder.** I spent my career in factory automation (PLCs, controls, plant-floor systems).
 I lost that job. Now I'm building 100 apps, on camera, to find out whether I can make a living building software.
 
