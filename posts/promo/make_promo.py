@@ -66,8 +66,8 @@ LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
 SEG = [
     (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
     (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
-    (7.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1450, 2200)), 'One square per app. Red building, yellow shipped, green has a video.'),
-    (3.0, 'kb', (rect(1600, 1000, 2200), rect(1690, 900, 1100)), 'Open a square.'),
+    (4.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red building, yellow shipped, green has a video.'),
+    (2.5, 'kb', (rect(1600, 1050, 2000), rect(1690, 900, 1100)), 'Open a square.'),
     (8.0, 'kbm', (rect(1590, 780, 1900), rect(1590, 2150, 1900)), 'Dates, hours by week, costs, and dated notes. Per app.'),
     (6.0, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
     (6.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
