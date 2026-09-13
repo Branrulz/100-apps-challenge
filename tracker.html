@@ -8,7 +8,7 @@
   :root {
     --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --border: #2a2f3a;
     --text: #e8eaf0; --muted: #8b93a7; --accent: #ff4d4d; --accent2: #ffb84d;
-    --idea: #3a3f4d; --building: #ffb84d; --shipped: #3ddc84; --video: #ff4d4d;
+    --idea: #3a3f4d; --building: #ff4d4d; --shipped: #ffb84d; --video: #3ddc84;
     --radius: 10px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
   }
   * { box-sizing: border-box; }
@@ -56,11 +56,11 @@
   .cell .n { font-weight: 700; font-size: 14px; color: var(--text); }
   .cell .t { font-size: 10px; line-height: 1.15; margin-top: 2px; max-height: 2.3em; overflow: hidden; }
   .cell.building { background: var(--building); }
-  .cell.building .n, .cell.building .t { color: #1a1200; }
+  .cell.building .n, .cell.building .t { color: #fff; }
   .cell.shipped { background: var(--shipped); }
-  .cell.shipped .n, .cell.shipped .t { color: #032b14; }
+  .cell.shipped .n, .cell.shipped .t { color: #1a1200; }
   .cell.video { background: var(--video); }
-  .cell.video .n, .cell.video .t { color: #fff; }
+  .cell.video .n, .cell.video .t { color: #032b14; }
   .cell.has-name { color: var(--text); }
 
   h2 { font-size: 18px; margin: 32px 0 12px; }
@@ -72,9 +72,9 @@
   .row .meta { color: var(--muted); font-size: 13px; }
   .pill { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
   .pill.idea { background: var(--idea); color: var(--text); }
-  .pill.building { background: var(--building); color: #1a1200; }
-  .pill.shipped { background: var(--shipped); color: #032b14; }
-  .pill.video { background: var(--video); color: #fff; }
+  .pill.building { background: var(--building); color: #fff; }
+  .pill.shipped { background: var(--shipped); color: #1a1200; }
+  .pill.video { background: var(--video); color: #032b14; }
   .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
 
   /* Modal */
