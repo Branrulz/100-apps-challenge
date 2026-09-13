@@ -45,3 +45,24 @@ Two kinds of channel with two different jobs:
 - One channel per app: the landing page. A demo, a how-to, the install link. Titled for search, no story.
   Search traffic does not need subscribers. Flock Camera Tracker already works this way.
 Cross-link both directions. Create app channels as apps ship, not up front. Budget an hour each for setup.
+
+## Kill rules, decided in advance (2026-09-13)
+
+**Main channel, judged at video 100.** Keep going if ANY one of these is true:
+- 1,000 subscribers
+- any single video over 10,000 views
+- any app with 500+ installs traceable to a video
+- a job offer or paid contract that came through the channel
+- the last 20 videos average more views than the first 20
+
+None of the five: stop. One of the five: double down on whatever produced it.
+
+**Halfway check at video 50.** If nothing on the list is moving, change the format. Do not quit at 50.
+
+**Per-app channels.** Three to five videos, then leave them alone. Judge at 90 days: installs coming
+from search means add a video when the app updates. Otherwise it sits there for free. Never spend a
+day on a video for an app nobody found.
+
+**Build mode.** Pick by 10 AM, build by 6 PM, video up by 9 PM, never revisit a miss.
+Lane: tools that let people check, track, count, or calculate something in the news. No sides taken.
+Politics, health claims, and anything aimed at a group gets apps pulled and videos demonetized.
