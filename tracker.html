@@ -181,6 +181,7 @@
   const STATUS_LABEL = { idea: 'Idea', building: 'Building', shipped: 'Shipped', video: 'Video published' };
 
   const SEED = [
+    { name: 'JakeFirework', pitch: 'WiFi-controlled firework spinner rig with a phone deadman interlock', tech: 'Arduino UNO Q (STM32 + Python) / Flutter', status: 'shipped' },
     { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer with 40 scenarios', tech: 'JavaScript / Node', status: 'shipped' },
     { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped' },
     { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped' },
@@ -197,9 +198,22 @@
   function load() {
     try {
       const raw = localStorage.getItem(KEY);
-      if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.apps) && s.apps.length === TOTAL) return s; }
+      if (raw) {
+        const s = JSON.parse(raw);
+        if (s && Array.isArray(s.apps) && s.apps.length === TOTAL) return migrate(s);
+      }
     } catch (e) {}
     return blank();
+  }
+  // Older saves started at PLC Troubleshooter; JakeFirework was actually app #1.
+  function migrate(s) {
+    if (s.apps[0].name === 'PLC Troubleshooter' && !s.apps.some(a => a.name === 'JakeFirework')) {
+      s.apps.pop();
+      s.apps.unshift(Object.assign({}, SEED[0]));
+      s.apps.forEach((a, i) => { a.n = i + 1; });
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
+    return s;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} render(); }
 
