@@ -81,6 +81,17 @@
   .byapp .r span:last-child { color: var(--accent2); white-space: nowrap; }
   .byapp .none { color: var(--muted); font-size: 12px; }
   .modal-costs { margin: 0 0 12px; }
+  .notes { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+  .note { display: grid; grid-template-columns: 92px 1fr auto; gap: 8px; align-items: start; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .note:last-child { border-bottom: 0; }
+  .note .d { color: var(--accent2); font-size: 12px; font-weight: 600; padding-top: 2px; white-space: nowrap; }
+  .note .t { white-space: pre-wrap; line-height: 1.4; }
+  .note button.x { padding: 2px 6px; color: var(--muted); font-size: 12px; }
+  .notes .none { color: var(--muted); font-size: 13px; padding: 4px 0; }
+  .newnote { display: grid; grid-template-columns: 150px 1fr; gap: 8px; margin-top: 8px; }
+  .newnote textarea { grid-column: 1 / -1; min-height: 44px; resize: vertical; }
+  .newnote input[type=date] { padding: 6px 8px; }
+  .newnote button { grid-column: 2; justify-self: end; }
   .modal-costs .total span:last-child { font-size: 16px; }
   .costs .total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 600; }
   .costs .total span:last-child { font-size: 20px; color: var(--accent2); }
@@ -246,7 +257,15 @@
       <div class="total"><span>App total</span><span id="appCostTotal">$0.00</span></div>
     </div>
     <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
-    <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
+    <div class="field" style="margin-bottom:6px"><label>Notes</label></div>
+    <div class="notes">
+      <div id="noteList"></div>
+      <div class="newnote">
+        <input type="date" id="noteDate" title="Date of this note">
+        <textarea id="noteText" placeholder="Wins, mistakes, things to say on camera" rows="2"></textarea>
+        <button id="addNote" type="button">+ Add note</button>
+      </div>
+    </div>
     <div class="actions">
       <button class="danger" id="clearBtn">Clear slot</button>
       <div class="right">
@@ -399,7 +418,7 @@
     const apps = state.apps.filter(a => !a.dead);
     const dead = state.apps.filter(a => a.dead && a.name);
     $('deadList').innerHTML = dead.length
-      ? dead.map(a => rowHtml(a, x => x.notes ? esc(x.notes.slice(0, 80)) : (x.pitch || ''))).join('')
+      ? dead.map(a => rowHtml(a, x => x.log && x.log.length ? esc(x.log[x.log.length - 1].text.slice(0, 80)) : x.notes ? esc(x.notes.slice(0, 80)) : (x.pitch || ''))).join('')
       : '<div class="empty">Nothing dropped. Tick "Not moving forward" on an app to park it here.</div>';
     const building = apps.filter(a => a.status === 'building');
     const done = apps.filter(a => a.status === 'shipped' || a.status === 'video')
@@ -586,14 +605,37 @@
   }
   $('addCost').onclick = () => { addCostRow().querySelector('.item').focus(); };
 
+  // Dated notes log per app: a.log = [{date, text}]. Old single-field a.notes becomes the first entry.
+  let modalLog = [];
+  function renderNoteList() {
+    modalLog.sort((x, y) => (x.date || '').localeCompare(y.date || ''));
+    $('noteList').innerHTML = modalLog.length
+      ? modalLog.map((n, i) => `<div class="note"><span class="d">${fmt(n.date)}</span><span class="t">${esc(n.text)}</span><button class="x" type="button" data-i="${i}" title="Remove">✕</button></div>`).join('')
+      : '<div class="none">No notes yet.</div>';
+  }
+  $('noteList').addEventListener('click', e => {
+    const b = e.target.closest('button.x'); if (!b) return;
+    if (confirm('Remove this note?')) { modalLog.splice(Number(b.dataset.i), 1); renderNoteList(); }
+  });
+  $('addNote').onclick = () => {
+    const text = $('noteText').value.trim(); if (!text) { $('noteText').focus(); return; }
+    modalLog.push({ date: $('noteDate').value || todayStr(), text });
+    $('noteText').value = ''; renderNoteList(); $('noteText').focus();
+  };
+  $('noteText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('addNote').click(); });
+
   // Modal
-  const fields = ['name', 'pitch', 'status', 'tech', 'started', 'shipped', 'video', 'link', 'hours', 'revenue', 'notes'];
+  const fields = ['name', 'pitch', 'status', 'tech', 'started', 'shipped', 'video', 'link', 'hours', 'revenue'];
   function openModal(n) {
     editing = n;
     const a = state.apps[n - 1];
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
+    modalLog = (a.log || []).map(n => ({ date: n.date, text: n.text }));
+    if (!a.log && a.notes) modalLog.push({ date: a.shipped || a.started || todayStr(), text: a.notes });
+    $('noteDate').value = todayStr(); $('noteText').value = '';
+    renderNoteList();
     $('appWeekRows').innerHTML = '';
     (a.weeks || []).forEach(addAppWeekRow);
     updateAppWeekTotal();
@@ -608,6 +650,9 @@
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
+    // an unsaved note still sitting in the box counts too
+    if ($('noteText').value.trim()) modalLog.push({ date: $('noteDate').value || todayStr(), text: $('noteText').value.trim() });
+    if (modalLog.length) { a.log = modalLog; a.notes = modalLog.map(n => n.text).join(' | '); }
     const costs = readRows('appCostRows').filter(c => c.item || c.amount); if (costs.length) a.costs = costs;
     const weeks = readAppWeeks(); if (weeks.length) { a.weeks = weeks; a.hours = String(appWeekHours(a)); }
     if (!a.name && a.status === 'idea') delete a.status;
