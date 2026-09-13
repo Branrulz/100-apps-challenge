@@ -105,6 +105,10 @@
     overflow: hidden; padding: 4px; text-align: center;
   }
   .cell:hover { transform: scale(1.06); border-color: var(--text); z-index: 1; }
+  .cell.dragging { opacity: .4; }
+  .cell.over { border-color: var(--accent2); transform: scale(1.06); }
+  .move { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+  .move input { width: 80px; }
   .cell .n { font-weight: 700; font-size: 14px; color: var(--text); }
   .cell .t { font-size: 10px; line-height: 1.15; margin-top: 2px; max-height: 2.3em; overflow: hidden; }
   .cell.building { background: var(--building); }
@@ -276,7 +280,10 @@
       </div>
     </div>
     <div class="actions">
-      <button class="danger" id="clearBtn">Clear slot</button>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <button class="danger" id="clearBtn">Clear slot</button>
+        <label class="move">Move to slot <input type="number" id="moveTo" min="1" max="100"> <button type="button" id="moveBtn">Move</button></label>
+      </div>
       <div class="right">
         <button id="cancelBtn">Cancel</button>
         <button class="primary" id="saveBtn">Save</button>
@@ -451,7 +458,7 @@
     $('grid').innerHTML = state.apps.map(a => {
       const cls = ['cell', a.status && a.status !== 'idea' ? a.status : '', a.name ? 'has-name' : '', a.dead ? 'dead' : ''].join(' ');
       const title = a.name ? `${a.n}. ${a.name}${a.dead ? ' — Abandoned' : a.status ? ' — ' + STATUS_LABEL[a.status] : ''}${a.play ? ' — on Google Play' : ''}${a.ios ? ' — on Apple Store' : ''}` : `App #${a.n} — empty`;
-      return `<div class="${cls}" data-n="${a.n}" title="${esc(title)}">${a.play ? '<div class="star">★</div>' : ''}${a.ios ? '<div class="ios">◆</div>' : ''}<div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
+      return `<div class="${cls}" data-n="${a.n}" draggable="${a.name ? 'true' : 'false'}" title="${esc(title)}">${a.play ? '<div class="star">★</div>' : ''}${a.ios ? '<div class="ios">◆</div>' : ''}<div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
     }).join('');
   }
 
@@ -683,6 +690,39 @@
   };
   $('noteText').addEventListener('keydown', e => { if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) $('addNote').click(); });
 
+  // Move an app to another slot. The two slots swap so nothing is lost.
+  function swapSlots(from, to) {
+    if (from === to || from < 1 || to < 1 || from > TOTAL || to > TOTAL) return;
+    const a = state.apps[from - 1], b = state.apps[to - 1];
+    state.apps[to - 1] = Object.assign({}, a, { n: to });
+    state.apps[from - 1] = Object.assign({}, b, { n: from });
+    save();
+  }
+  let dragFrom = null;
+  $('grid').addEventListener('dragstart', e => {
+    const el = e.target.closest('.cell'); if (!el || el.getAttribute('draggable') !== 'true') return;
+    dragFrom = Number(el.dataset.n); el.classList.add('dragging');
+    e.dataTransfer.effectAllowed = 'move'; e.dataTransfer.setData('text/plain', String(dragFrom));
+  });
+  $('grid').addEventListener('dragend', () => { dragFrom = null; document.querySelectorAll('.cell.dragging, .cell.over').forEach(el => el.classList.remove('dragging', 'over')); });
+  $('grid').addEventListener('dragover', e => {
+    const el = e.target.closest('.cell'); if (!el || dragFrom === null) return;
+    e.preventDefault(); e.dataTransfer.dropEffect = 'move';
+    document.querySelectorAll('.cell.over').forEach(x => x.classList.remove('over')); el.classList.add('over');
+  });
+  $('grid').addEventListener('dragleave', e => { const el = e.target.closest('.cell'); if (el) el.classList.remove('over'); });
+  $('grid').addEventListener('drop', e => {
+    const el = e.target.closest('.cell'); if (!el || dragFrom === null) return;
+    e.preventDefault(); const to = Number(el.dataset.n); const from = dragFrom; dragFrom = null;
+    swapSlots(from, to);
+  });
+  $('moveBtn').onclick = () => {
+    const to = Number($('moveTo').value); if (!to || to < 1 || to > TOTAL) { $('moveTo').focus(); return; }
+    const target = state.apps[to - 1];
+    if (target.name && !confirm(`Slot ${to} has ${target.name}. Swap the two?`)) return;
+    const from = editing; closeModal(); swapSlots(from, to);
+  };
+
   // Modal
   const fields = ['name', 'pitch', 'status', 'tech', 'started', 'shipped', 'video', 'link', 'hours', 'revenue'];
   function openModal(n) {
@@ -696,6 +736,7 @@
     modalLog = (a.log || []).map(n => ({ date: n.date, text: n.text }));
     if (!a.log && a.notes) modalLog.push({ date: a.shipped || a.started || todayStr(), text: a.notes });
     $('noteDate').value = todayStr(); $('noteText').value = '';
+    $('moveTo').value = '';
     renderNoteList();
     $('appWeekRows').innerHTML = '';
     (a.weeks || []).forEach(addAppWeekRow);
