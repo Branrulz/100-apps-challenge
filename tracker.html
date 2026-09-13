@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>100 Apps Challenge</title>
+<style>
+  :root {
+    --bg: #0f1115; --panel: #171a21; --panel2: #1e222b; --border: #2a2f3a;
+    --text: #e8eaf0; --muted: #8b93a7; --accent: #ff4d4d; --accent2: #ffb84d;
+    --idea: #3a3f4d; --building: #ffb84d; --shipped: #3ddc84; --video: #ff4d4d;
+    --radius: 10px; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: inherit; }
+  header { padding: 28px 24px 12px; max-width: 1100px; margin: 0 auto; }
+  h1 { margin: 0; font-size: 30px; letter-spacing: -0.5px; }
+  h1 span { color: var(--accent); }
+  .tagline { color: var(--muted); margin: 6px 0 0; font-size: 15px; }
+  main { max-width: 1100px; margin: 0 auto; padding: 0 24px 60px; }
+
+  .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0; }
+  .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .stat .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: .06em; }
+  .stat .value { font-size: 28px; font-weight: 700; margin-top: 4px; }
+  .stat .sub { color: var(--muted); font-size: 12px; margin-top: 2px; }
+
+  .bar { height: 14px; background: var(--panel2); border-radius: 99px; overflow: hidden; display: flex; border: 1px solid var(--border); }
+  .bar div { height: 100%; }
+  .bar .b-video { background: var(--video); }
+  .bar .b-shipped { background: var(--shipped); }
+  .bar .b-building { background: var(--building); }
+  .legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 13px; color: var(--muted); margin: 10px 0 24px; }
+  .legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+
+  .toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; }
+  .toolbar label { color: var(--muted); font-size: 13px; }
+  button, input, textarea, select {
+    font: inherit; color: var(--text); background: var(--panel2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 12px;
+  }
+  button { cursor: pointer; }
+  button:hover { border-color: var(--muted); }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; font-weight: 600; }
+  button.danger { color: var(--accent); }
+  input[type=date] { color-scheme: dark; }
+
+  .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
+  .cell {
+    aspect-ratio: 1; border-radius: 8px; background: var(--idea); border: 2px solid transparent;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; font-size: 12px; color: var(--muted); position: relative; transition: transform .08s;
+    overflow: hidden; padding: 4px; text-align: center;
+  }
+  .cell:hover { transform: scale(1.06); border-color: var(--text); z-index: 1; }
+  .cell .n { font-weight: 700; font-size: 14px; color: var(--text); }
+  .cell .t { font-size: 10px; line-height: 1.15; margin-top: 2px; max-height: 2.3em; overflow: hidden; }
+  .cell.building { background: var(--building); }
+  .cell.building .n, .cell.building .t { color: #1a1200; }
+  .cell.shipped { background: var(--shipped); }
+  .cell.shipped .n, .cell.shipped .t { color: #032b14; }
+  .cell.video { background: var(--video); }
+  .cell.video .n, .cell.video .t { color: #fff; }
+  .cell.has-name { color: var(--text); }
+
+  h2 { font-size: 18px; margin: 32px 0 12px; }
+  .list { display: flex; flex-direction: column; gap: 8px; }
+  .row { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 14px; display: flex; gap: 12px; align-items: center; cursor: pointer; }
+  .row:hover { border-color: var(--muted); }
+  .row .num { font-weight: 700; min-width: 36px; color: var(--muted); }
+  .row .name { font-weight: 600; flex: 1; }
+  .row .meta { color: var(--muted); font-size: 13px; }
+  .pill { font-size: 11px; padding: 3px 8px; border-radius: 99px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; }
+  .pill.idea { background: var(--idea); color: var(--text); }
+  .pill.building { background: var(--building); color: #1a1200; }
+  .pill.shipped { background: var(--shipped); color: #032b14; }
+  .pill.video { background: var(--video); color: #fff; }
+  .empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+
+  /* Modal */
+  .overlay { position: fixed; inset: 0; background: rgba(0,0,0,.6); display: none; align-items: center; justify-content: center; padding: 16px; z-index: 10; }
+  .overlay.open { display: flex; }
+  .modal { background: var(--panel); border: 1px solid var(--border); border-radius: 14px; width: 100%; max-width: 620px; max-height: 92vh; overflow: auto; padding: 22px; }
+  .modal h3 { margin: 0 0 14px; font-size: 20px; }
+  .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .field label { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .05em; }
+  .field input, .field textarea, .field select { width: 100%; }
+  .field textarea { min-height: 70px; resize: vertical; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .actions { display: flex; gap: 10px; justify-content: space-between; margin-top: 16px; flex-wrap: wrap; }
+  .actions .right { display: flex; gap: 10px; }
+  .hint { color: var(--muted); font-size: 12px; margin-top: 12px; }
+  a { color: var(--accent2); }
+  @media (max-width: 640px) {
+    .grid { gap: 5px; }
+    .cell .t { display: none; }
+    .two { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>100 Apps <span>Challenge</span></h1>
+  <p class="tagline">Blue collar to app builder. Factory automation tech, laid off, building 100 apps on YouTube to see if I can make it.</p>
+</header>
+<main>
+  <div class="stats" id="stats"></div>
+  <div class="bar" id="bar"></div>
+  <div class="legend">
+    <span><i style="background:var(--video)"></i>Video published</span>
+    <span><i style="background:var(--shipped)"></i>Shipped</span>
+    <span><i style="background:var(--building)"></i>Building</span>
+    <span><i style="background:var(--idea)"></i>Idea / empty</span>
+  </div>
+
+  <div class="toolbar">
+    <label>Challenge start <input type="date" id="startDate"></label>
+    <label>Target finish <input type="date" id="targetDate"></label>
+    <span style="flex:1"></span>
+    <button id="exportBtn">Export JSON</button>
+    <button id="importBtn">Import JSON</button>
+    <input type="file" id="importFile" accept="application/json" style="display:none">
+  </div>
+
+  <div class="grid" id="grid"></div>
+
+  <h2>Currently building</h2>
+  <div class="list" id="buildingList"></div>
+
+  <h2>Shipped log</h2>
+  <div class="list" id="shippedList"></div>
+
+  <h2>Idea backlog</h2>
+  <div class="list" id="ideaList"></div>
+  <p class="hint">Data is saved in this browser automatically. Hit <b>Export JSON</b> now and then and keep the file next to this page so nothing is lost.</p>
+</main>
+
+<div class="overlay" id="overlay">
+  <div class="modal">
+    <h3 id="modalTitle">App #1</h3>
+    <div class="field"><label>App name</label><input id="f_name" placeholder="e.g. Shift Hours Calculator"></div>
+    <div class="field"><label>One-line pitch</label><input id="f_pitch" placeholder="What it does and who it's for"></div>
+    <div class="two">
+      <div class="field"><label>Status</label>
+        <select id="f_status">
+          <option value="idea">Idea</option>
+          <option value="building">Building</option>
+          <option value="shipped">Shipped</option>
+          <option value="video">Video published</option>
+        </select>
+      </div>
+      <div class="field"><label>Tech stack</label><input id="f_tech" placeholder="Flutter, React, Python..."></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Started</label><input type="date" id="f_started"></div>
+      <div class="field"><label>Shipped</label><input type="date" id="f_shipped"></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Video URL</label><input id="f_video" placeholder="https://youtube.com/..."></div>
+      <div class="field"><label>App / repo URL</label><input id="f_link" placeholder="Play Store, GitHub, website..."></div>
+    </div>
+    <div class="two">
+      <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
+      <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
+    </div>
+    <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
+    <div class="actions">
+      <button class="danger" id="clearBtn">Clear slot</button>
+      <div class="right">
+        <button id="cancelBtn">Cancel</button>
+        <button class="primary" id="saveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const KEY = 'hundredApps.v1';
+  const TOTAL = 100;
+  const STATUS_LABEL = { idea: 'Idea', building: 'Building', shipped: 'Shipped', video: 'Video published' };
+
+  const SEED = [
+    { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer with 40 scenarios', tech: 'JavaScript / Node', status: 'shipped' },
+    { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped' },
+    { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped' },
+    { name: 'Haynes Exchange', pitch: 'Automated trading bot for Kalshi prediction markets', tech: 'Python / Kalshi API', status: 'shipped' },
+  ];
+  let state = load();
+  let editing = null;
+
+  function blank() {
+    const apps = Array.from({ length: TOTAL }, (_, i) => ({ n: i + 1 }));
+    SEED.forEach((a, i) => { apps[i] = Object.assign({ n: i + 1 }, a); });
+    return { apps, startDate: '', targetDate: '' };
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (raw) { const s = JSON.parse(raw); if (s && Array.isArray(s.apps) && s.apps.length === TOTAL) return s; }
+    } catch (e) {}
+    return blank();
+  }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} render(); }
+
+  const $ = (id) => document.getElementById(id);
+  const fmt = (d) => d ? new Date(d + 'T00:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : '';
+  const daysBetween = (a, b) => Math.round((b - a) / 86400000);
+
+  function counts() {
+    const c = { idea: 0, building: 0, shipped: 0, video: 0, named: 0 };
+    for (const a of state.apps) { if (a.name) c.named++; if (a.status) c[a.status]++; }
+    c.done = c.shipped + c.video;
+    return c;
+  }
+
+  function renderStats() {
+    const c = counts();
+    const today = new Date(); today.setHours(0,0,0,0);
+    const start = state.startDate ? new Date(state.startDate + 'T00:00:00') : null;
+    const target = state.targetDate ? new Date(state.targetDate + 'T00:00:00') : null;
+    const daysIn = start ? Math.max(0, daysBetween(start, today)) : null;
+    const daysLeft = target ? daysBetween(today, target) : null;
+    const hours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
+    const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
+
+    let pace = '';
+    if (start && target) {
+      const total = daysBetween(start, target);
+      const expected = total > 0 ? Math.round(TOTAL * Math.min(1, daysIn / total)) : 0;
+      const diff = c.done - expected;
+      pace = diff >= 0 ? `${diff} ahead of pace` : `${-diff} behind pace`;
+    }
+    let needed = '';
+    if (daysLeft !== null && daysLeft > 0) {
+      const remaining = TOTAL - c.done;
+      needed = remaining > 0 ? `1 app every ${(daysLeft / remaining).toFixed(1)} days to finish` : 'Done!';
+    }
+    const cards = [
+      ['Apps shipped', `${c.done} / ${TOTAL}`, pace],
+      ['Videos published', c.video, ''],
+      ['In progress', c.building, `${c.idea} ideas waiting`],
+      ['Days in', daysIn === null ? '—' : daysIn, daysLeft === null ? 'set a target date' : (daysLeft >= 0 ? `${daysLeft} days left` : `${-daysLeft} days over`)],
+      ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, needed],
+      ['Revenue', '$' + revenue.toFixed(2), 'across all apps'],
+    ];
+    $('stats').innerHTML = cards.map(([l, v, s]) =>
+      `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join('');
+    $('bar').innerHTML =
+      `<div class="b-video" style="width:${c.video}%"></div>` +
+      `<div class="b-shipped" style="width:${c.shipped}%"></div>` +
+      `<div class="b-building" style="width:${c.building}%"></div>`;
+  }
+
+  function renderGrid() {
+    $('grid').innerHTML = state.apps.map(a => {
+      const cls = ['cell', a.status && a.status !== 'idea' ? a.status : '', a.name ? 'has-name' : ''].join(' ');
+      const title = a.name ? `${a.n}. ${a.name}${a.status ? ' — ' + STATUS_LABEL[a.status] : ''}` : `App #${a.n} — empty`;
+      return `<div class="${cls}" data-n="${a.n}" title="${esc(title)}"><div class="n">${a.n}</div>${a.name ? `<div class="t">${esc(a.name)}</div>` : ''}</div>`;
+    }).join('');
+  }
+
+  function rowHtml(a, metaFn) {
+    return `<div class="row" data-n="${a.n}"><span class="num">#${a.n}</span><span class="name">${esc(a.name || '(untitled)')}</span>` +
+      `<span class="meta">${metaFn(a)}</span><span class="pill ${a.status}">${STATUS_LABEL[a.status]}</span></div>`;
+  }
+  function renderLists() {
+    const apps = state.apps;
+    const building = apps.filter(a => a.status === 'building');
+    const done = apps.filter(a => a.status === 'shipped' || a.status === 'video')
+      .sort((x, y) => (y.shipped || '').localeCompare(x.shipped || '') || y.n - x.n);
+    const ideas = apps.filter(a => a.status === 'idea' && a.name);
+    $('buildingList').innerHTML = building.length
+      ? building.map(a => rowHtml(a, x => x.started ? 'started ' + fmt(x.started) : (x.tech || ''))).join('')
+      : '<div class="empty">Nothing in progress. Click a square and set it to Building.</div>';
+    $('shippedList').innerHTML = done.length
+      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
+      : '<div class="empty">No apps shipped yet. App #1 is waiting.</div>';
+    $('ideaList').innerHTML = ideas.length
+      ? ideas.map(a => rowHtml(a, x => x.pitch || '')).join('')
+      : '<div class="empty">Add ideas to empty squares so you never sit wondering what to build next.</div>';
+  }
+
+  function render() {
+    $('startDate').value = state.startDate || '';
+    $('targetDate').value = state.targetDate || '';
+    renderStats(); renderGrid(); renderLists();
+  }
+
+  function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
+
+  // Modal
+  const fields = ['name', 'pitch', 'status', 'tech', 'started', 'shipped', 'video', 'link', 'hours', 'revenue', 'notes'];
+  function openModal(n) {
+    editing = n;
+    const a = state.apps[n - 1];
+    $('modalTitle').textContent = `App #${n}`;
+    for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
+    $('overlay').classList.add('open');
+    $('f_name').focus();
+  }
+  function closeModal() { $('overlay').classList.remove('open'); editing = null; }
+  $('saveBtn').onclick = () => {
+    const a = { n: editing };
+    for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
+    if (!a.name && a.status === 'idea') delete a.status;
+    if (a.status === 'building' && !a.started) a.started = todayStr();
+    if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
+    state.apps[editing - 1] = a;
+    closeModal(); save();
+  };
+  $('cancelBtn').onclick = closeModal;
+  $('clearBtn').onclick = () => { if (confirm(`Clear app #${editing}?`)) { state.apps[editing - 1] = { n: editing }; closeModal(); save(); } };
+  $('overlay').addEventListener('click', e => { if (e.target === $('overlay')) closeModal(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && editing) closeModal(); });
+  document.addEventListener('click', e => {
+    const el = e.target.closest('[data-n]'); if (el) openModal(Number(el.dataset.n));
+  });
+  function todayStr() { const d = new Date(); return d.toISOString().slice(0, 10); }
+
+  $('startDate').onchange = e => { state.startDate = e.target.value; save(); };
+  $('targetDate').onchange = e => { state.targetDate = e.target.value; save(); };
+
+  // Export / import
+  $('exportBtn').onclick = () => {
+    const blob = new Blob([JSON.stringify(state, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob); a.download = `100-apps-${todayStr()}.json`; a.click();
+    URL.revokeObjectURL(a.href);
+  };
+  $('importBtn').onclick = () => $('importFile').click();
+  $('importFile').onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = () => {
+      try {
+        const s = JSON.parse(r.result);
+        if (!s || !Array.isArray(s.apps) || s.apps.length !== TOTAL) throw new Error('bad file');
+        if (confirm('Replace current data with this file?')) { state = s; save(); }
+      } catch (err) { alert('That file does not look like a 100 Apps export.'); }
+      e.target.value = '';
+    };
+    r.readAsText(file);
+  };
+
+  if (!state.startDate) state.startDate = todayStr();
+  render();
+})();
+</script>
+</body>
+</html>
