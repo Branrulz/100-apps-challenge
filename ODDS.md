@@ -48,14 +48,9 @@ Cross-link both directions. Create app channels as apps ship, not up front. Budg
 
 ## Kill rules, decided in advance (2026-09-13)
 
-**Main channel, judged at video 100.** Keep going if ANY one of these is true:
-- 1,000 subscribers
-- any single video over 10,000 views
-- any app with 500+ installs traceable to a video
-- a job offer or paid contract that came through the channel
-- the last 20 videos average more views than the first 20
-
-None of the five: stop. One of the five: double down on whatever produced it.
+**Main channel, judged at video 100.** It must be in the YouTube Partner Program:
+1,000 subscribers and 4,000 public watch hours in the last 12 months (or 10M Shorts views in 90 days).
+Partner by video 100, or stop. No other outcome counts.
 
 **Halfway check at video 50.** If nothing on the list is moving, change the format. Do not quit at 50.
 
