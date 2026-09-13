@@ -55,7 +55,15 @@
   .costs input { width: 100%; padding: 6px 8px; font-size: 13px; }
   .costs input.amt { width: 78px; text-align: right; }
   .costs button.x { padding: 4px 6px; color: var(--muted); font-size: 12px; }
-  .costs #addCost { margin-top: 8px; width: 100%; }
+  .costs #addCost, .costs #addAppCost { margin-top: 8px; width: 100%; }
+  .costs .sec { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 6px; }
+  .byapp .r { display: flex; justify-content: space-between; gap: 8px; font-size: 13px; padding: 4px 2px; cursor: pointer; border-radius: 6px; }
+  .byapp .r:hover { background: var(--panel2); }
+  .byapp .r span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .byapp .r span:last-child { color: var(--accent2); white-space: nowrap; }
+  .byapp .none { color: var(--muted); font-size: 12px; }
+  .modal-costs { margin-bottom: 12px; }
+  .modal-costs .total span:last-child { font-size: 16px; }
   .costs .total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 600; }
   .costs .total span:last-child { font-size: 20px; color: var(--accent2); }
   .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
@@ -151,8 +159,11 @@
     <aside class="costs">
       <h3>Costs</h3>
       <p class="sub">Everything it takes to get apps to production.</p>
+      <div class="sec">General</div>
       <table id="costRows"></table>
       <button id="addCost" type="button">+ Add cost</button>
+      <div class="sec" style="margin-top:12px">By app</div>
+      <div id="appCostList" class="byapp"></div>
       <div class="total"><span>Total</span><span id="costTotal">$0.00</span></div>
     </aside>
     <div class="grid" id="grid"></div>
@@ -199,6 +210,12 @@
     <div class="two">
       <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
       <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
+    </div>
+    <div class="field" style="margin-bottom:6px"><label>Costs for this app</label></div>
+    <div class="costs modal-costs">
+      <table id="appCostRows"></table>
+      <button id="addAppCost" type="button">+ Add cost</button>
+      <div class="total"><span>App total</span><span id="appCostTotal">$0.00</span></div>
     </div>
     <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
     <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
@@ -294,7 +311,7 @@
     const daysLeft = target ? daysBetween(today, target) : null;
     const hours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
-    const spent = costTotal(state.costs);
+    const spent = grandTotal();
     const net = revenue - spent;
 
     let pace = '';
@@ -353,7 +370,7 @@
       ? building.map(a => rowHtml(a, x => x.started ? 'started ' + fmt(x.started) : (x.tech || ''))).join('')
       : '<div class="empty">Nothing in progress. Click a square and set it to Building.</div>';
     $('shippedList').innerHTML = done.length
-      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
+      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.costs && x.costs.length ? '$' + costTotal(x.costs).toFixed(2) + ' spent' : '', x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
       : '<div class="empty">No apps shipped yet. App #1 is waiting.</div>';
     $('ideaList').innerHTML = ideas.length
       ? ideas.map(a => rowHtml(a, x => x.pitch || '')).join('')
@@ -370,34 +387,42 @@
 
   // Cost ledger (left panel). Saved in state.costs as [{item, amount}].
   function costTotal(list) { return (list || []).reduce((s, c) => s + (Number(c.amount) || 0), 0); }
-  function readCostRows() {
-    return [...document.querySelectorAll('#costRows tr')].map(tr => ({
+  function readRows(tableId) {
+    return [...document.querySelectorAll('#' + tableId + ' tr')].map(tr => ({
       item: tr.querySelector('.item').value.trim(), amount: Number(tr.querySelector('.amt').value) || 0
     }));
   }
-  function addCostRow(c = {}) {
+  function addCostRow(c = {}, tableId = 'costRows', onChange = commitCosts) {
     const tr = document.createElement('tr');
     tr.innerHTML = `<td><input class="item" placeholder="Play Store fee, domain..."></td>` +
       `<td><input class="amt" type="number" min="0" step="0.01" placeholder="0.00"></td>` +
       `<td><button class="x" type="button" title="Remove">✕</button></td>`;
     tr.querySelector('.item').value = c.item || '';
     tr.querySelector('.amt').value = c.amount ?? '';
-    tr.querySelector('.x').onclick = () => { tr.remove(); commitCosts(); };
-    tr.addEventListener('input', commitCosts);
-    $('costRows').appendChild(tr);
+    tr.querySelector('.x').onclick = () => { tr.remove(); onChange(); };
+    tr.addEventListener('input', onChange);
+    $(tableId).appendChild(tr);
     return tr;
   }
+  function appCostsTotal() { return state.apps.reduce((t, a) => t + costTotal(a.costs), 0); }
+  function grandTotal() { return costTotal(state.costs) + appCostsTotal(); }
+  function updateAppCostTotal() { $('appCostTotal').textContent = '$' + costTotal(readRows('appCostRows')).toFixed(2); }
+  $('addAppCost').onclick = () => { addCostRow({}, 'appCostRows', updateAppCostTotal).querySelector('.item').focus(); };
   let costsDirty = false;
   function commitCosts() {
-    state.costs = readCostRows().filter(c => c.item || c.amount);
+    state.costs = readRows('costRows').filter(c => c.item || c.amount);
     try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-    $('costTotal').textContent = '$' + costTotal(state.costs).toFixed(2);
+    $('costTotal').textContent = '$' + grandTotal().toFixed(2);
     renderStats();
   }
   function renderCosts() {
     $('costRows').innerHTML = '';
-    (state.costs || []).forEach(addCostRow);
-    $('costTotal').textContent = '$' + costTotal(state.costs).toFixed(2);
+    (state.costs || []).forEach(c => addCostRow(c));
+    const withCosts = state.apps.filter(a => a.costs && a.costs.length);
+    $('appCostList').innerHTML = withCosts.length
+      ? withCosts.map(a => `<div class="r" data-n="${a.n}"><span>#${a.n} ${esc(a.name || '')}</span><span>$${costTotal(a.costs).toFixed(2)}</span></div>`).join('')
+      : '<div class="none">Add costs inside an app square and they show here.</div>';
+    $('costTotal').textContent = '$' + grandTotal().toFixed(2);
   }
   $('addCost').onclick = () => { addCostRow().querySelector('.item').focus(); };
 
@@ -409,6 +434,9 @@
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
+    $('appCostRows').innerHTML = '';
+    (a.costs || []).forEach(c => addCostRow(c, 'appCostRows', updateAppCostTotal));
+    updateAppCostTotal();
     $('overlay').classList.add('open');
     $('f_name').focus();
   }
@@ -417,6 +445,7 @@
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
+    const costs = readRows('appCostRows').filter(c => c.item || c.amount); if (costs.length) a.costs = costs;
     if (!a.name && a.status === 'idea') delete a.status;
     if (a.status === 'building' && !a.started) a.started = todayStr();
     if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
