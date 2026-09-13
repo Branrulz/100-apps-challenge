@@ -23,7 +23,7 @@ Runner-up kept for a bit or a series name: "Blue Collar to No Collar".
 ## Channel description
 
 **Short (header):**
-Laid off from factory automation. Building 100 apps on camera to see if a blue collar guy can make it as an app builder. Honest numbers, every time.
+Let go from factory automation. Building 100 apps on camera to see if a blue collar guy can make it as an app builder. Honest numbers, every time.
 
 **Full (About page):**
 I spent my career in factory automation: PLCs, controls, keeping production lines running. Then I lost the job.
@@ -36,7 +36,7 @@ New app episodes as fast as I can ship them. Six apps down before the channel ev
 
 Progress tracker and every app: github.com/Branrulz/100-apps-challenge
 
-**Keywords:** blue collar to code, 100 apps challenge, learn to code, app development, indie apps, career change, laid off, factory automation, PLC, self taught developer
+**Keywords:** blue collar to code, 100 apps challenge, learn to code, app development, indie apps, career change, let go, factory automation, PLC, self taught developer
 
 ## Profile picture
 Plan: photo of Brandon in a work shirt, collar visible, cut out over the blue/dark diagonal split with code brackets. Drop the photo in brand/. The hard-hat icon version (brand/profile-800.png) is a fallback.
