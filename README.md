@@ -25,7 +25,7 @@ Keep the latest export in this folder.
 | 3 | Flock Camera Tracker | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
 | 4 | ChartinSpace | Unicorn toot-platformer game | Flutter (ported from Unity) |
 | 5 | Haynes Exchange | Automated Kalshi prediction-market trader | Python / Kalshi API |
-| 6 | Days Since | Factory-style "days since last incident" sign app (in progress) | TBD |
+| 6 | 100 Apps | Channel companion app: factory-style "days since" counters (in progress) | TBD |
 
 ## Idea backlog
 
