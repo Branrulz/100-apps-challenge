@@ -66,7 +66,7 @@ SEG = [
     (7.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1450, 2200)), 'One square per app. Red building, yellow shipped, green has a video.'),
     (6.0, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
     (6.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
-    (5.0, 'card', ('Blue Collar to Code', '100 apps, on camera, honest numbers', 'github.com/Branrulz/100-apps-challenge'), None),
+    (5.0, 'card', ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
 ]
 XF = 0.5  # crossfade seconds
 
