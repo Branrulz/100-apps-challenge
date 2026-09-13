@@ -20,10 +20,11 @@ Keep the latest export in this folder.
 
 | # | App | What it is | Stack |
 |---|-----|-----------|-------|
-| 1 | PLC Troubleshooter | Vendor-neutral PLC fault-finding trainer, 40 scenarios | JavaScript / Node |
-| 2 | Flock Camera Tracker | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
-| 3 | ChartinSpace | Unicorn toot-platformer game | Flutter (ported from Unity) |
-| 4 | Haynes Exchange | Automated Kalshi prediction-market trader | Python / Kalshi API |
+| 1 | JakeFirework | WiFi-controlled firework spinner rig with a phone deadman interlock | Arduino UNO Q (STM32 + Python) / Flutter |
+| 2 | PLC Troubleshooter | Vendor-neutral PLC fault-finding trainer, 40 scenarios | JavaScript / Node |
+| 3 | Flock Camera Tracker | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
+| 4 | ChartinSpace | Unicorn toot-platformer game | Flutter (ported from Unity) |
+| 5 | Haynes Exchange | Automated Kalshi prediction-market trader | Python / Kalshi API |
 
 ## Idea backlog
 
