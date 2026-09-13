@@ -18,14 +18,14 @@ Keep the latest export in this folder.
 
 ## Apps so far
 
-| # | App | What it is | Stack |
-|---|-----|-----------|-------|
-| 1 | JakeFirework | WiFi-controlled firework spinner rig with a phone deadman interlock | Arduino UNO Q (STM32 + Python) / Flutter |
-| 2 | PLC Troubleshooter | Vendor-neutral PLC fault-finding trainer, 40 scenarios | JavaScript / Node |
-| 3 | Flock Camera Tracker | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
-| 4 | ChartinSpace | Unicorn toot-platformer game | Flutter (ported from Unity) |
-| 5 | Haynes Exchange | Automated Kalshi prediction-market trader | Python / Kalshi API |
-| 6 | 100 Apps | Channel companion app: factory-style "days since" counters (in progress) | TBD |
+| # | App | Started | What it is | Stack |
+|---|-----|---------|-----------|-------|
+| 1 | JakeFirework | 2026-02-07 | WiFi-controlled firework spinner rig with a phone deadman interlock | Arduino UNO Q (STM32 + Python) / Flutter |
+| 2 | ChartinSpace | 2026-05-05 | Unicorn toot-platformer game | Flutter (ported from Unity) |
+| 3 | Haynes Exchange | 2026-09-04 | Automated Kalshi prediction-market trader | Python / Kalshi API |
+| 4 | Flock Camera Tracker | 2026-09-09 | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
+| 5 | PLC Troubleshooter | 2026-09-10 | Vendor-neutral PLC fault-finding trainer, 40 scenarios | JavaScript / Node |
+| 6 | 100 Apps | 2026-09-13 | Channel companion app: factory-style "days since" counters (in progress) | TBD |
 
 ## Idea backlog
 
