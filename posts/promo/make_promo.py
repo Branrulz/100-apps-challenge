@@ -60,13 +60,15 @@ def fade(a, b, t):
 # ---- storyboard: (seconds, kind, args, caption) ----
 # crop rects are in page.png pixel coords (3200 wide). All 16:9.
 def rect(cx, cy, w): h = w * 9 / 16; return (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
+LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
 SEG = [
-    (4.0, 'card', ('100 Apps Challenge', 'Blue Collar to Code', None), None),
+    (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
     (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
     (7.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1450, 2200)), 'One square per app. Red building, yellow shipped, green has a video.'),
     (6.0, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
     (6.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
-    (5.0, 'card', ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
+    (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
+               else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
 ]
 XF = 0.5  # crossfade seconds
 
@@ -81,7 +83,7 @@ total = sum(s[0] for s in SEG)
 print('duration', total, 's')
 ffmpeg = imageio_ffmpeg.get_ffmpeg_exe()
 os.makedirs(OUT, exist_ok=True)
-outfile = os.path.join(OUT, '100-apps-promo.mp4')
+outfile = os.path.join(OUT, '100-apps-promo-linkedin.mp4' if LINKEDIN else '100-apps-promo.mp4')
 cmd = [ffmpeg, '-y', '-f', 'rawvideo', '-vcodec', 'rawvideo', '-s', f'{W}x{H}', '-pix_fmt', 'rgb24', '-r', str(FPS), '-i', '-',
        '-an', '-vcodec', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '18', '-preset', 'medium', '-movflags', '+faststart', outfile]
 proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
