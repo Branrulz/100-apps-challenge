@@ -5,6 +5,7 @@ import imageio_ffmpeg
 
 SC = sys.argv[1]; OUT = sys.argv[2]
 PAGE = Image.open(os.path.join(SC, 'shots', 'page.png')).convert('RGB')
+MODAL = Image.open(os.path.join(SC, 'shots', 'modal.png')).convert('RGB')  # the 100 Apps square opened
 W, H = 1920, 1080; FPS = 30
 BG = (15, 17, 21); RED = (255, 77, 77); MUTED = (139, 147, 167); WHITE = (232, 234, 240)
 
@@ -18,17 +19,18 @@ F_TITLE = font(120); F_SUB = font(52, False); F_CAP = font(44); F_SMALL = font(3
 
 def ease(t): return 0.5 - 0.5 * math.cos(math.pi * t)
 
-def kb_frame(r0, r1, t):
+def kb_frame(r0, r1, t, src=None):
     """Ken Burns: crop rect interpolated from r0 to r1 (both 16:9), resized to 1920x1080."""
+    src = src or PAGE
     e = ease(t)
     r = [r0[i] + (r1[i] - r0[i]) * e for i in range(4)]
     # keep the crop inside the page: shift, never distort
-    PW, PH = PAGE.size
+    PW, PH = src.size
     if r[0] < 0: r[2] -= r[0]; r[0] = 0
     if r[1] < 0: r[3] -= r[1]; r[1] = 0
     if r[2] > PW: r[0] -= r[2] - PW; r[2] = PW
     if r[3] > PH: r[1] -= r[3] - PH; r[3] = PH
-    return PAGE.crop(tuple(int(v) for v in r)).resize((W, H), Image.LANCZOS)
+    return src.crop(tuple(int(v) for v in r)).resize((W, H), Image.LANCZOS)
 
 def caption(img, text):
     if not text: return img
@@ -65,6 +67,8 @@ SEG = [
     (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
     (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
     (7.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1450, 2200)), 'One square per app. Red building, yellow shipped, green has a video.'),
+    (3.0, 'kb', (rect(1600, 1000, 2200), rect(1690, 900, 1100)), 'Open a square.'),
+    (8.0, 'kbm', (rect(1590, 780, 1900), rect(1590, 2150, 1900)), 'Dates, hours by week, costs, and dated notes. Per app.'),
     (6.0, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
     (6.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
     (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
@@ -76,6 +80,7 @@ frames = []
 def seg_frame(seg, t):
     dur, kind, args, cap = seg
     if kind == 'card': img = card(*args)
+    elif kind == 'kbm': img = kb_frame(args[0], args[1], t / dur, MODAL)
     else: img = kb_frame(args[0], args[1], t / dur)
     return caption(img, cap)
 
