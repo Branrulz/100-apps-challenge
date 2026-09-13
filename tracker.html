@@ -186,6 +186,7 @@
     { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped' },
     { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped' },
     { name: 'Haynes Exchange', pitch: 'Automated trading bot for Kalshi prediction markets', tech: 'Python / Kalshi API', status: 'shipped' },
+    { name: 'Days Since', pitch: 'Factory "days since last incident" sign app, built for the channel shower-counter gag', tech: 'TBD', status: 'building', started: '2026-09-13' },
   ];
   let state = load();
   let editing = null;
@@ -211,6 +212,10 @@
       s.apps.pop();
       s.apps.unshift(Object.assign({}, SEED[0]));
       s.apps.forEach((a, i) => { a.n = i + 1; });
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
+    if (!s.apps[5].name && !s.apps.some(a => a.name === 'Days Since')) {
+      s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     return s;
