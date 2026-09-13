@@ -302,9 +302,16 @@
   let state = load();
   let editing = null;
 
+  const IDEAS = [
+    { name: 'PLC Signal Scaler', pitch: '4-20 mA / 0-10 V to engineering units and back, with the ladder formula for AB, Siemens, generic', status: 'idea' },
+    { name: 'Shift Pay Calculator', pitch: 'Rate, shift differential, OT after 8 or 40, double time, holidays. See the check before it lands', status: 'idea' },
+    { name: 'Motor & Wire Sizer', pitch: 'HP, voltage, phase, run length in. FLA, wire gauge, breaker, conduit fill out. Paid reference app', status: 'idea' },
+    { name: 'Downtime Logger', pitch: 'Tap machine, tap reason, timer runs. Weekly downtime by machine and cause for shops without a CMMS', status: 'idea' },
+  ];
   function blank() {
     const apps = Array.from({ length: TOTAL }, (_, i) => ({ n: i + 1 }));
     SEED.forEach((a, i) => { apps[i] = Object.assign({ n: i + 1 }, a); });
+    IDEAS.forEach((a, i) => { apps[SEED.length + i] = Object.assign({ n: SEED.length + i + 1 }, a); });
     return { apps, startDate: '', targetDate: '', weeksV2: true, weeks: [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
   }
   function load() {
@@ -343,6 +350,15 @@
     }
     if (!s.weeks) {
       s.weeks = [{ week: '2026-09-06', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }];
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
+    if (!s.ideasV1) {
+      // drop the four starter ideas into the first empty squares after the named ones
+      for (const idea of IDEAS) {
+        if (s.apps.some(a => a.name === idea.name)) continue;
+        const slot = s.apps.find(a => !a.name && a.n > 6); if (slot) Object.assign(slot, idea);
+      }
+      s.ideasV1 = true;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
