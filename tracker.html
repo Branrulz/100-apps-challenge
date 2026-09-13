@@ -69,6 +69,15 @@
   }
   .row.dead .name { text-decoration: line-through; text-decoration-color: #ff2d2d; text-decoration-thickness: 2px; color: var(--muted); }
   .pill.dead { background: #ff2d2d; color: #fff; }
+  .costs { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
+  .costs table { width: 100%; border-collapse: collapse; }
+  .costs td { padding: 3px 4px; }
+  .costs td:first-child { width: 100%; }
+  .costs input { width: 100%; padding: 6px 8px; }
+  .costs input.amt { width: 110px; text-align: right; }
+  .costs button.x { padding: 4px 8px; color: var(--muted); }
+  .costs .total { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-weight: 600; }
+  .costs .total span:last-child { font-size: 18px; color: var(--accent2); }
   .check { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 14px; }
   .check input { width: 18px; height: 18px; accent-color: #ff2d2d; }
 
@@ -177,6 +186,12 @@
       <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
       <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
     </div>
+    <div class="field" style="margin-bottom:6px"><label>Costs to get it to production</label></div>
+    <div class="costs">
+      <table id="costRows"></table>
+      <button id="addCost" type="button" style="margin-top:6px">+ Add cost</button>
+      <div class="total"><span>Total cost</span><span id="costTotal">$0.00</span></div>
+    </div>
     <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
     <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
     <div class="actions">
@@ -271,6 +286,8 @@
     const daysLeft = target ? daysBetween(today, target) : null;
     const hours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
+    const spent = state.apps.reduce((s, a) => s + costTotal(a.costs), 0);
+    const net = revenue - spent;
 
     let pace = '';
     if (start && target) {
@@ -291,6 +308,7 @@
       ['Days in', daysIn === null ? '—' : daysIn, daysLeft === null ? 'set a target date' : (daysLeft >= 0 ? `${daysLeft} days left` : `${-daysLeft} days over`)],
       ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, needed],
       ['Revenue', '$' + revenue.toFixed(2), 'across all apps'],
+      ['Spent', '$' + spent.toFixed(2), `net ${net < 0 ? '-' : ''}$${Math.abs(net).toFixed(2)}`],
     ];
     $('stats').innerHTML = cards.map(([l, v, s]) =>
       `<div class="stat"><div class="label">${l}</div><div class="value">${v}</div><div class="sub">${s}</div></div>`).join('');
@@ -327,7 +345,7 @@
       ? building.map(a => rowHtml(a, x => x.started ? 'started ' + fmt(x.started) : (x.tech || ''))).join('')
       : '<div class="empty">Nothing in progress. Click a square and set it to Building.</div>';
     $('shippedList').innerHTML = done.length
-      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
+      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.costs && x.costs.length ? '$' + costTotal(x.costs).toFixed(2) + ' spent' : '', x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
       : '<div class="empty">No apps shipped yet. App #1 is waiting.</div>';
     $('ideaList').innerHTML = ideas.length
       ? ideas.map(a => rowHtml(a, x => x.pitch || '')).join('')
@@ -342,6 +360,28 @@
 
   function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
 
+  // Costs
+  function costTotal(list) { return (list || []).reduce((s, c) => s + (Number(c.amount) || 0), 0); }
+  function readCostRows() {
+    return [...document.querySelectorAll('#costRows tr')].map(tr => ({
+      item: tr.querySelector('.item').value.trim(), amount: Number(tr.querySelector('.amt').value) || 0
+    })).filter(c => c.item || c.amount);
+  }
+  function addCostRow(c = {}) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td><input class="item" placeholder="Play Store fee, domain, icons..."></td>` +
+      `<td><input class="amt" type="number" min="0" step="0.01" placeholder="0.00"></td>` +
+      `<td><button class="x" type="button" title="Remove">✕</button></td>`;
+    tr.querySelector('.item').value = c.item || '';
+    tr.querySelector('.amt').value = c.amount ?? '';
+    tr.querySelector('.x').onclick = () => { tr.remove(); updateCostTotal(); };
+    tr.addEventListener('input', updateCostTotal);
+    $('costRows').appendChild(tr);
+    return tr;
+  }
+  function updateCostTotal() { $('costTotal').textContent = '$' + costTotal(readCostRows()).toFixed(2); }
+  $('addCost').onclick = () => { addCostRow().querySelector('.item').focus(); };
+
   // Modal
   const fields = ['name', 'pitch', 'status', 'tech', 'started', 'shipped', 'video', 'link', 'hours', 'revenue', 'notes'];
   function openModal(n) {
@@ -350,6 +390,9 @@
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
+    $('costRows').innerHTML = '';
+    (a.costs || []).forEach(addCostRow);
+    updateCostTotal();
     $('overlay').classList.add('open');
     $('f_name').focus();
   }
@@ -358,6 +401,7 @@
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
+    const costs = readCostRows(); if (costs.length) a.costs = costs;
     if (!a.name && a.status === 'idea') delete a.status;
     if (a.status === 'building' && !a.started) a.started = todayStr();
     if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
