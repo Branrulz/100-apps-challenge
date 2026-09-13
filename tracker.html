@@ -19,6 +19,17 @@
   .tagline { color: var(--muted); margin: 6px 0 0; font-size: 15px; }
   main { max-width: 1200px; margin: 0 auto; padding: 0 24px 60px; display: grid; grid-template-columns: 240px minmax(0, 1fr); gap: 20px; align-items: start; }
   .content { min-width: 0; }
+  .side { display: flex; flex-direction: column; gap: 16px; }
+  .weeks { margin-top: 0 !important; }
+  .week { margin-bottom: 8px; }
+  .week .top { display: flex; gap: 4px; align-items: center; }
+  .week input[type=date] { flex: 1; padding: 5px 6px; font-size: 12px; }
+  .week input.hrs { width: 58px; text-align: right; padding: 5px 6px; font-size: 13px; }
+  .week input.note { width: 100%; margin-top: 4px; padding: 4px 6px; font-size: 12px; }
+  .week .barbg { height: 6px; background: var(--panel2); border-radius: 99px; margin-top: 5px; overflow: hidden; }
+  .week .barfg { height: 100%; background: var(--accent2); border-radius: 99px; }
+  .week button.x { padding: 4px 6px; color: var(--muted); font-size: 12px; }
+  .costs #addWeek { margin-top: 4px; width: 100%; }
 
   .stats { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; margin: 20px 0; }
   .stat { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 12px 12px; min-width: 0; }
@@ -135,6 +146,7 @@
   <p class="tagline"><b>Blue Collar to Code.</b> Factory automation tech, laid off, building 100 apps on YouTube to see if I can make it.</p>
 </header>
 <main>
+  <div class="side">
   <aside class="costs">
     <h3>Costs</h3>
     <p class="sub">Everything it takes to get apps to production.</p>
@@ -145,6 +157,14 @@
     <div id="appCostList" class="byapp"></div>
     <div class="total"><span>Total</span><span id="costTotal">$0.00</span></div>
   </aside>
+  <aside class="costs weeks">
+    <h3>Weekly hours</h3>
+    <p class="sub">What each week took.</p>
+    <div id="weekRows"></div>
+    <button id="addWeek" type="button">+ Add week</button>
+    <div class="total"><span>Total</span><span id="weekTotal">0 h</span></div>
+  </aside>
+  </div>
   <div class="content">
   <div class="stats" id="stats"></div>
   <div class="bar" id="bar"></div>
@@ -248,7 +268,7 @@
   function blank() {
     const apps = Array.from({ length: TOTAL }, (_, i) => ({ n: i + 1 }));
     SEED.forEach((a, i) => { apps[i] = Object.assign({ n: i + 1 }, a); });
-    return { apps, startDate: '', targetDate: '' };
+    return { apps, startDate: '', targetDate: '', weeks: [{ week: '2026-09-07', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }] };
   }
   function load() {
     try {
@@ -270,6 +290,10 @@
     }
     const ds = s.apps.find(a => a.name === 'Days Since');
     if (ds) { ds.name = '100 Apps'; ds.pitch = SEED[5].pitch; try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {} }
+    if (!s.weeks) {
+      s.weeks = [{ week: '2026-09-07', hours: 90, note: 'Tracker, channel setup, PLC Troubleshooter, Flock, Haynes Exchange' }];
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
       s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
@@ -308,7 +332,10 @@
     const target = state.targetDate ? new Date(state.targetDate + 'T00:00:00') : null;
     const daysIn = start ? Math.max(0, daysBetween(start, today)) : null;
     const daysLeft = target ? daysBetween(today, target) : null;
-    const hours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
+    const appHours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
+    const wk = weekTotal();
+    const hours = wk || appHours;
+    const thisWeek = (state.weeks || []).find(w => w.week === mondayOf(new Date()));
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
     const spent = grandTotal();
     const net = revenue - spent;
@@ -330,7 +357,7 @@
       ['Videos published', c.video, ''],
       ['In progress', c.building, `${c.idea} ideas waiting` + (c.dead ? `, ${c.dead} abandoned` : '')],
       ['Days in', daysIn === null ? '—' : daysIn, daysLeft === null ? 'set a target date' : (daysLeft >= 0 ? `${daysLeft} days left` : `${-daysLeft} days over`)],
-      ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, needed],
+      ['Hours logged', hours % 1 ? hours.toFixed(1) : hours, thisWeek ? `${thisWeek.hours} this week` : needed],
       ['Revenue', '$' + revenue.toFixed(2), 'across all apps'],
       ['Spent', '$' + spent.toFixed(2), `net ${net < 0 ? '-' : ''}$${Math.abs(net).toFixed(2)}`],
     ];
@@ -379,7 +406,7 @@
   function render() {
     $('startDate').value = state.startDate || '';
     $('targetDate').value = state.targetDate || '';
-    renderStats(); renderGrid(); renderLists(); renderCosts();
+    renderStats(); renderGrid(); renderLists(); renderCosts(); renderWeeks();
   }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
@@ -406,6 +433,48 @@
   function appCostsTotal() { return state.apps.reduce((t, a) => t + costTotal(a.costs), 0); }
   function grandTotal() { return costTotal(state.costs) + appCostsTotal(); }
   function updateAppCostTotal() { $('appCostTotal').textContent = '$' + costTotal(readRows('appCostRows')).toFixed(2); }
+  // Weekly hours log. state.weeks = [{week: 'YYYY-MM-DD' (Monday), hours, note}]
+  function weekTotal() { return (state.weeks || []).reduce((t, w) => t + (Number(w.hours) || 0), 0); }
+  function mondayOf(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x.toISOString().slice(0, 10); }
+  function commitWeeks() {
+    state.weeks = [...document.querySelectorAll('#weekRows .week')].map(el => ({
+      week: el.querySelector('.wk').value, hours: Number(el.querySelector('.hrs').value) || 0, note: el.querySelector('.note').value.trim()
+    })).filter(w => w.week || w.hours || w.note);
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    $('weekTotal').textContent = fmtH(weekTotal());
+    const max = Math.max(1, ...state.weeks.map(w => Number(w.hours) || 0));
+    document.querySelectorAll('#weekRows .week').forEach(el => {
+      el.querySelector('.barfg').style.width = (100 * (Number(el.querySelector('.hrs').value) || 0) / max) + '%';
+    });
+    renderStats();
+  }
+  function fmtH(h) { return (h % 1 ? h.toFixed(1) : h) + ' h'; }
+  function addWeekRow(w = {}) {
+    const el = document.createElement('div'); el.className = 'week';
+    el.innerHTML = `<div class="top"><input type="date" class="wk" title="Week starting"><input class="hrs" type="number" min="0" step="0.5" placeholder="hrs"><button class="x" type="button" title="Remove">✕</button></div>` +
+      `<input class="note" placeholder="what happened this week"><div class="barbg"><div class="barfg"></div></div>`;
+    el.querySelector('.wk').value = w.week || '';
+    el.querySelector('.hrs').value = w.hours ?? '';
+    el.querySelector('.note').value = w.note || '';
+    el.querySelector('.x').onclick = () => { if (confirm('Remove this week?')) { el.remove(); commitWeeks(); } };
+    el.addEventListener('input', commitWeeks);
+    $('weekRows').appendChild(el);
+    return el;
+  }
+  function renderWeeks() {
+    $('weekRows').innerHTML = '';
+    const weeks = (state.weeks || []).slice().sort((a, b) => (a.week || '').localeCompare(b.week || ''));
+    const max = Math.max(1, ...weeks.map(w => Number(w.hours) || 0));
+    weeks.forEach(w => { addWeekRow(w).querySelector('.barfg').style.width = (100 * (Number(w.hours) || 0) / max) + '%'; });
+    $('weekTotal').textContent = fmtH(weekTotal());
+  }
+  $('addWeek').onclick = () => {
+    const last = (state.weeks || []).map(w => w.week).sort().pop();
+    let next = mondayOf(new Date());
+    if (last) { const d = new Date(last + 'T00:00:00'); d.setDate(d.getDate() + 7); if (d <= new Date()) next = d.toISOString().slice(0, 10); }
+    addWeekRow({ week: next }).querySelector('.hrs').focus();
+  };
+
   $('addAppCost').onclick = () => { addCostRow({}, 'appCostRows', updateAppCostTotal).querySelector('.item').focus(); };
   let costsDirty = false;
   function commitCosts() {
