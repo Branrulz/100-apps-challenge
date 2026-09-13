@@ -25,6 +25,14 @@
   .week input[type=date] { flex: 1; padding: 5px 6px; font-size: 12px; }
   .week input.hrs { width: 58px; text-align: right; padding: 5px 6px; font-size: 13px; }
   .week input.note { width: 100%; margin-top: 4px; padding: 4px 6px; font-size: 12px; }
+  .week .hdr { display: flex; justify-content: space-between; align-items: baseline; font-size: 13px; font-weight: 600; }
+  .week .hdr span:last-child { color: var(--accent2); }
+  .week .apps { font-size: 11px; color: var(--muted); margin-top: 2px; line-height: 1.4; }
+  .week .apps b { color: var(--text); font-weight: 500; }
+  .week .other { display: flex; gap: 4px; align-items: center; margin-top: 4px; font-size: 11px; color: var(--muted); }
+  .week .other input.hrs { width: 58px; }
+  .modal-costs input.wk { width: 100%; padding: 6px 8px; font-size: 13px; }
+  .modal-costs td.wkcell { width: 100%; }
   .week .barbg { height: 6px; background: var(--panel2); border-radius: 99px; margin-top: 5px; overflow: hidden; }
   .week .barfg { height: 100%; background: var(--accent2); border-radius: 99px; }
   .week button.x { padding: 4px 6px; color: var(--muted); font-size: 12px; }
@@ -192,7 +200,7 @@
   </div>
   <aside class="costs weeks">
     <h3>Weekly hours</h3>
-    <p class="sub">Sunday to Saturday. Date is the Sunday the week starts.</p>
+    <p class="sub">Sunday to Saturday. App hours come from each square; "other" is everything else.</p>
     <div id="weekRows"></div>
     <button id="addWeek" type="button">+ Add week</button>
     <div class="total"><span>Total</span><span id="weekTotal">0 h</span></div>
@@ -224,8 +232,14 @@
       <div class="field"><label>App / repo URL</label><input id="f_link" placeholder="Play Store, GitHub, website..."></div>
     </div>
     <div class="two">
-      <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
+      <div class="field"><label>Hours spent (total)</label><input type="number" id="f_hours" min="0" step="0.5" placeholder="auto from weeks below"></div>
       <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
+    </div>
+    <div class="field" style="margin-bottom:6px"><label>Hours by week (Sunday the week starts)</label></div>
+    <div class="costs modal-costs">
+      <table id="appWeekRows"></table>
+      <button id="addAppWeek" type="button">+ Add week</button>
+      <div class="total"><span>App hours</span><span id="appWeekTotal">0 h</span></div>
     </div>
     <div class="field" style="margin-bottom:6px"><label>Costs for this app</label></div>
     <div class="costs modal-costs">
@@ -332,10 +346,9 @@
     const target = state.targetDate ? new Date(state.targetDate + 'T00:00:00') : null;
     const daysIn = start ? Math.max(0, daysBetween(start, today)) : null;
     const daysLeft = target ? daysBetween(today, target) : null;
-    const appHours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
-    const wk = weekTotal();
-    const hours = wk || appHours;
-    const latest = (state.weeks || []).slice().sort((a, b) => (b.week || '').localeCompare(a.week || ''))[0];
+    const rollup = weekRollup();
+    const hours = rollup.length ? weekTotal() : state.apps.reduce((s, a) => s + appHours(a), 0);
+    const latest = rollup.length ? { week: rollup[rollup.length - 1].week, hours: rollup[rollup.length - 1].total } : null;
     const thisWeek = latest && latest.week === weekStart(new Date()) ? latest : null;
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
     const spent = grandTotal();
@@ -434,48 +447,115 @@
   function appCostsTotal() { return state.apps.reduce((t, a) => t + costTotal(a.costs), 0); }
   function grandTotal() { return costTotal(state.costs) + appCostsTotal(); }
   function updateAppCostTotal() { $('appCostTotal').textContent = '$' + costTotal(readRows('appCostRows')).toFixed(2); }
-  // Weekly hours log. state.weeks = [{week: 'YYYY-MM-DD' (Monday), hours, note}]
-  function weekTotal() { return (state.weeks || []).reduce((t, w) => t + (Number(w.hours) || 0), 0); }
-  // Weeks run Sunday to Saturday. weekStart() gives the Sunday on or before a date.
+  // Weekly hours. Two sources, rolled up by week (Sunday start):
+  //   state.weeks = [{week, hours, note}]   "other" hours not tied to an app, edited in the panel
+  //   app.weeks   = [{week, hours}]         per-app hours, edited inside the square
   function weekStart(d) { const x = new Date(d); x.setHours(0,0,0,0); x.setDate(x.getDate() - x.getDay()); return x.toISOString().slice(0, 10); }
-  function commitWeeks() {
-    state.weeks = [...document.querySelectorAll('#weekRows .week')].map(el => ({
-      week: el.querySelector('.wk').value, hours: Number(el.querySelector('.hrs').value) || 0, note: el.querySelector('.note').value.trim()
-    })).filter(w => w.week || w.hours || w.note);
-    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
-    $('weekTotal').textContent = fmtH(weekTotal());
-    const max = Math.max(1, ...state.weeks.map(w => Number(w.hours) || 0));
-    document.querySelectorAll('#weekRows .week').forEach(el => {
-      el.querySelector('.barfg').style.width = (100 * (Number(el.querySelector('.hrs').value) || 0) / max) + '%';
-    });
-    renderStats();
-  }
+  function plusDays(iso, n) { const d = new Date(iso + 'T00:00:00'); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); }
   function fmtH(h) { return (h % 1 ? h.toFixed(1) : h) + ' h'; }
-  function addWeekRow(w = {}) {
-    const el = document.createElement('div'); el.className = 'week';
-    el.innerHTML = `<div class="top"><input type="date" class="wk" title="Sunday the week starts"><input class="hrs" type="number" min="0" step="0.5" placeholder="hrs"><button class="x" type="button" title="Remove">✕</button></div>` +
-      `<input class="note" placeholder="what happened this week"><div class="barbg"><div class="barfg"></div></div>`;
-    el.querySelector('.wk').value = w.week || '';
-    el.querySelector('.hrs').value = w.hours ?? '';
-    el.querySelector('.note').value = w.note || '';
-    el.querySelector('.x').onclick = () => { if (confirm('Remove this week?')) { el.remove(); commitWeeks(); } };
-    el.addEventListener('input', commitWeeks);
-    el.querySelector('.wk').addEventListener('change', e => { if (e.target.value) { e.target.value = weekStart(e.target.value + 'T00:00:00'); commitWeeks(); } });
-    $('weekRows').appendChild(el);
-    return el;
+  function appWeekHours(a) { return (a.weeks || []).reduce((t, w) => t + (Number(w.hours) || 0), 0); }
+  function appHours(a) { return a.weeks && a.weeks.length ? appWeekHours(a) : (Number(a.hours) || 0); }
+  function persist() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} }
+
+  // [{week, other, note, apps: [{n, name, hours}], total}] sorted by week
+  function weekRollup() {
+    const map = {};
+    const get = k => map[k] || (map[k] = { week: k, other: 0, note: '', apps: [], total: 0 });
+    for (const w of state.weeks || []) { if (!w.week) continue; const r = get(w.week); r.other += Number(w.hours) || 0; if (w.note) r.note = w.note; }
+    for (const a of state.apps) for (const w of a.weeks || []) {
+      const h = Number(w.hours) || 0; if (!w.week || !h) continue;
+      get(w.week).apps.push({ n: a.n, name: a.name || '', hours: h });
+    }
+    const rows = Object.values(map).sort((x, y) => x.week.localeCompare(y.week));
+    for (const r of rows) r.total = r.other + r.apps.reduce((t, x) => t + x.hours, 0);
+    return rows;
+  }
+  function weekTotal() { return weekRollup().reduce((t, r) => t + r.total, 0); }
+
+  // Read the panel's editable fields back into state.weeks (one entry per week row).
+  function readPanelWeeks() {
+    return [...document.querySelectorAll('#weekRows .week')].map(el => ({
+      week: el.dataset.week, hours: Number(el.querySelector('.hrs').value) || 0, note: el.querySelector('.note').value.trim()
+    }));
   }
   function renderWeeks() {
+    const rows = weekRollup();
+    const max = Math.max(1, ...rows.map(r => r.total));
     $('weekRows').innerHTML = '';
-    const weeks = (state.weeks || []).slice().sort((a, b) => (a.week || '').localeCompare(b.week || ''));
-    const max = Math.max(1, ...weeks.map(w => Number(w.hours) || 0));
-    weeks.forEach(w => { addWeekRow(w).querySelector('.barfg').style.width = (100 * (Number(w.hours) || 0) / max) + '%'; });
+    for (const r of rows) {
+      const el = document.createElement('div'); el.className = 'week'; el.dataset.week = r.week;
+      el.innerHTML =
+        `<div class="hdr"><span>${fmt(r.week)} to ${fmt(plusDays(r.week, 6))}</span><span>${fmtH(r.total)}</span></div>` +
+        `<div class="apps">${r.apps.length ? r.apps.map(x => `<b>#${x.n} ${esc(x.name)}</b> ${fmtH(x.hours)}`).join(' · ') : '<i>no app hours yet</i>'}</div>` +
+        `<div class="other">other <input class="hrs" type="number" min="0" step="0.5" placeholder="0"> <button class="x" type="button" title="Remove this week">✕</button></div>` +
+        `<input class="note" placeholder="what happened this week">` +
+        `<div class="barbg"><div class="barfg" style="width:${100 * r.total / max}%"></div></div>`;
+      el.querySelector('.hrs').value = r.other || '';
+      el.querySelector('.note').value = r.note;
+      el.querySelector('.hrs').addEventListener('input', refreshWeeks);
+      el.querySelector('.note').addEventListener('input', refreshWeeks);
+      el.querySelector('.x').onclick = () => {
+        if (r.apps.length) { alert('This week still has app hours. Remove those inside the app squares first.'); return; }
+        if (!confirm('Remove this week?')) return;
+        state.weeks = (state.weeks || []).filter(w => w.week !== r.week); persist(); renderWeeks(); renderStats();
+      };
+      $('weekRows').appendChild(el);
+    }
     $('weekTotal').textContent = fmtH(weekTotal());
   }
+  // Typing in the panel: persist and refresh numbers without rebuilding the rows under the cursor.
+  function refreshWeeks() {
+    state.weeks = readPanelWeeks();
+    persist();
+    const rows = weekRollup(); const max = Math.max(1, ...rows.map(r => r.total));
+    document.querySelectorAll('#weekRows .week').forEach(el => {
+      const r = rows.find(x => x.week === el.dataset.week); if (!r) return;
+      el.querySelector('.hdr span:last-child').textContent = fmtH(r.total);
+      el.querySelector('.barfg').style.width = (100 * r.total / max) + '%';
+    });
+    $('weekTotal').textContent = fmtH(weekTotal());
+    renderStats();
+  }
   $('addWeek').onclick = () => {
-    const last = (state.weeks || []).map(w => w.week).sort().pop();
+    const have = weekRollup().map(r => r.week);
     let next = weekStart(new Date());
-    if (last) { const d = new Date(last + 'T00:00:00'); d.setDate(d.getDate() + 7); if (d <= new Date()) next = d.toISOString().slice(0, 10); }
-    addWeekRow({ week: next }).querySelector('.hrs').focus();
+    const last = have[have.length - 1];
+    if (last) { const n = plusDays(last, 7); if (n <= next && !have.includes(n)) next = n; }
+    if (!have.includes(next)) { state.weeks = (state.weeks || []).concat([{ week: next, hours: 0, note: '' }]); persist(); renderWeeks(); }
+    const el = document.querySelector(`#weekRows .week[data-week="${next}"] .hrs`); if (el) el.focus();
+  };
+
+  // Per-app weeks inside the modal
+  function readAppWeeks() {
+    return [...document.querySelectorAll('#appWeekRows tr')].map(tr => ({
+      week: tr.querySelector('.wk').value, hours: Number(tr.querySelector('.hrs').value) || 0
+    })).filter(w => w.week && w.hours);
+  }
+  function updateAppWeekTotal() {
+    const list = readAppWeeks(); const t = list.reduce((s, w) => s + w.hours, 0);
+    $('appWeekTotal').textContent = fmtH(t);
+    $('f_hours').readOnly = list.length > 0;
+    if (list.length) $('f_hours').value = t;
+  }
+  function addAppWeekRow(w = {}) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<td class="wkcell"><input type="date" class="wk" title="Sunday the week starts"></td>` +
+      `<td><input class="hrs amt" type="number" min="0" step="0.5" placeholder="hrs"></td>` +
+      `<td><button class="x" type="button" title="Remove">✕</button></td>`;
+    tr.querySelector('.wk').value = w.week || '';
+    tr.querySelector('.hrs').value = w.hours ?? '';
+    tr.querySelector('.wk').addEventListener('change', e => { if (e.target.value) e.target.value = weekStart(e.target.value + 'T00:00:00'); updateAppWeekTotal(); });
+    tr.querySelector('.hrs').addEventListener('input', updateAppWeekTotal);
+    tr.querySelector('.x').onclick = () => { tr.remove(); updateAppWeekTotal(); };
+    $('appWeekRows').appendChild(tr);
+    return tr;
+  }
+  $('addAppWeek').onclick = () => {
+    const have = readAppWeeks().map(w => w.week).sort();
+    let next = weekStart(new Date());
+    const last = have[have.length - 1];
+    if (last) { const n = plusDays(last, 7); if (n <= next) next = n; }
+    addAppWeekRow({ week: next }).querySelector('.hrs').focus();
   };
 
   $('addAppCost').onclick = () => { addCostRow({}, 'appCostRows', updateAppCostTotal).querySelector('.item').focus(); };
@@ -505,6 +585,9 @@
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
+    $('appWeekRows').innerHTML = '';
+    (a.weeks || []).forEach(addAppWeekRow);
+    updateAppWeekTotal();
     $('appCostRows').innerHTML = '';
     (a.costs || []).forEach(c => addCostRow(c, 'appCostRows', updateAppCostTotal));
     updateAppCostTotal();
@@ -517,6 +600,7 @@
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
     const costs = readRows('appCostRows').filter(c => c.item || c.amount); if (costs.length) a.costs = costs;
+    const weeks = readAppWeeks(); if (weeks.length) { a.weeks = weeks; a.hours = String(appWeekHours(a)); }
     if (!a.name && a.status === 'idea') delete a.status;
     if (a.status === 'building' && !a.started) a.started = todayStr();
     if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
