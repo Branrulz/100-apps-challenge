@@ -1,37 +1,11 @@
 # Channel planning
 
-## Name candidates
+## Channel name: Blue Collar to Code
 
-**Blue collar to code**
-- Hard Hat to Hoodie
-- Steel Toes to Software
-- Laid Off, Logged On
-- Plant Floor to Play Store
-- Blue Collar Builder
-- Grease to Git
-- Punch Out, Push Code
+Decided 2026-09-13. Handle to try first: @bluecollartocode. Fallbacks: @bluecollar2code, @bluecollartocodeTV.
+Display name: Blue Collar to Code. Series title inside the channel: 100 Apps Challenge.
 
-**The challenge**
-- 100 Apps Deep
-- Hundred App Haynes
-- Ship 100
-- One Hundred or Bust
-- Apps Till I Make It
-
-**Factory automation identity**
-- Ladder Logic Labs
-- Haynes Automation
-- Brandon Builds
-- Controls Guy Codes
-- Fault Finder
-
-**Short and brandable**
-- Haynes Builds
-- Shift Change
-- Days Since
-- Clock In
-
-Check the YouTube handle and a domain before committing.
+Runner-up kept for a bit or a series name: "Blue Collar to No Collar".
 
 ## Intro video outline (60-90 s)
 
