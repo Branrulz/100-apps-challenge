@@ -39,4 +39,9 @@ Chasing view counts instead of shipped apps, and quitting between app 15 and 25 
 gone and nothing has paid yet. That is where most people stop. Still shipping at app 30 means you are
 past the point where most quit, and the odds shift.
 
-One channel, 100 videos. Never 100 channels.
+## Channel structure
+Two kinds of channel with two different jobs:
+- Blue Collar to Code: the journey. One episode per app with the story and the numbers. Subscribers live here.
+- One channel per app: the landing page. A demo, a how-to, the install link. Titled for search, no story.
+  Search traffic does not need subscribers. Flock Camera Tracker already works this way.
+Cross-link both directions. Create app channels as apps ship, not up front. Budget an hour each for setup.
