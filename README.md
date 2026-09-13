@@ -42,3 +42,10 @@ Things from the plant floor that nobody has built well yet:
 - Sensor/wire color-code reference
 - Motor sizing calculator
 - Unit converter for controls people (PSI, bar, mA, scaled values)
+
+## Queued (in the tracker)
+
+7. PLC Signal Scaler
+8. Shift Pay Calculator
+9. Motor & Wire Sizer
+10. Downtime Logger
