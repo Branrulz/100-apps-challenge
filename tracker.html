@@ -45,6 +45,19 @@
   button.danger { color: var(--accent); }
   input[type=date] { color-scheme: dark; }
 
+  .board { display: grid; grid-template-columns: 260px 1fr; gap: 16px; align-items: start; }
+  .costs { background: var(--panel); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; }
+  .costs h3 { margin: 0; font-size: 16px; }
+  .costs .sub { color: var(--muted); font-size: 12px; margin: 4px 0 10px; }
+  .costs table { width: 100%; border-collapse: collapse; }
+  .costs td { padding: 2px 2px; vertical-align: middle; }
+  .costs td:first-child { width: 100%; }
+  .costs input { width: 100%; padding: 6px 8px; font-size: 13px; }
+  .costs input.amt { width: 78px; text-align: right; }
+  .costs button.x { padding: 4px 6px; color: var(--muted); font-size: 12px; }
+  .costs #addCost { margin-top: 8px; width: 100%; }
+  .costs .total { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-weight: 600; }
+  .costs .total span:last-child { font-size: 20px; color: var(--accent2); }
   .grid { display: grid; grid-template-columns: repeat(10, 1fr); gap: 8px; }
   .cell {
     aspect-ratio: 1; border-radius: 8px; background: var(--idea); border: 2px solid transparent;
@@ -69,15 +82,6 @@
   }
   .row.dead .name { text-decoration: line-through; text-decoration-color: #ff2d2d; text-decoration-thickness: 2px; color: var(--muted); }
   .pill.dead { background: #ff2d2d; color: #fff; }
-  .costs { border: 1px solid var(--border); border-radius: 8px; padding: 10px; margin-bottom: 12px; }
-  .costs table { width: 100%; border-collapse: collapse; }
-  .costs td { padding: 3px 4px; }
-  .costs td:first-child { width: 100%; }
-  .costs input { width: 100%; padding: 6px 8px; }
-  .costs input.amt { width: 110px; text-align: right; }
-  .costs button.x { padding: 4px 8px; color: var(--muted); }
-  .costs .total { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-weight: 600; }
-  .costs .total span:last-child { font-size: 18px; color: var(--accent2); }
   .check { display: flex; align-items: center; gap: 8px; margin: 4px 0 12px; font-size: 14px; }
   .check input { width: 18px; height: 18px; accent-color: #ff2d2d; }
 
@@ -109,6 +113,7 @@
   .actions .right { display: flex; gap: 10px; }
   .hint { color: var(--muted); font-size: 12px; margin-top: 12px; }
   a { color: var(--accent2); }
+  @media (max-width: 900px) { .board { grid-template-columns: 1fr; } }
   @media (max-width: 640px) {
     .grid { gap: 5px; }
     .cell .t { display: none; }
@@ -142,7 +147,16 @@
     <input type="file" id="importFile" accept="application/json" style="display:none">
   </div>
 
-  <div class="grid" id="grid"></div>
+  <div class="board">
+    <aside class="costs">
+      <h3>Costs</h3>
+      <p class="sub">Everything it takes to get apps to production.</p>
+      <table id="costRows"></table>
+      <button id="addCost" type="button">+ Add cost</button>
+      <div class="total"><span>Total</span><span id="costTotal">$0.00</span></div>
+    </aside>
+    <div class="grid" id="grid"></div>
+  </div>
 
   <h2>Currently building</h2>
   <div class="list" id="buildingList"></div>
@@ -185,12 +199,6 @@
     <div class="two">
       <div class="field"><label>Hours spent</label><input type="number" id="f_hours" min="0" step="0.5"></div>
       <div class="field"><label>Revenue so far ($)</label><input type="number" id="f_revenue" min="0" step="0.01"></div>
-    </div>
-    <div class="field" style="margin-bottom:6px"><label>Costs to get it to production</label></div>
-    <div class="costs">
-      <table id="costRows"></table>
-      <button id="addCost" type="button" style="margin-top:6px">+ Add cost</button>
-      <div class="total"><span>Total cost</span><span id="costTotal">$0.00</span></div>
     </div>
     <label class="check"><input type="checkbox" id="f_dead"> Not moving forward with this one</label>
     <div class="field"><label>What I learned</label><textarea id="f_notes" placeholder="Wins, mistakes, things to say on camera"></textarea></div>
@@ -286,7 +294,7 @@
     const daysLeft = target ? daysBetween(today, target) : null;
     const hours = state.apps.reduce((s, a) => s + (Number(a.hours) || 0), 0);
     const revenue = state.apps.reduce((s, a) => s + (Number(a.revenue) || 0), 0);
-    const spent = state.apps.reduce((s, a) => s + costTotal(a.costs), 0);
+    const spent = costTotal(state.costs);
     const net = revenue - spent;
 
     let pace = '';
@@ -345,7 +353,7 @@
       ? building.map(a => rowHtml(a, x => x.started ? 'started ' + fmt(x.started) : (x.tech || ''))).join('')
       : '<div class="empty">Nothing in progress. Click a square and set it to Building.</div>';
     $('shippedList').innerHTML = done.length
-      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.costs && x.costs.length ? '$' + costTotal(x.costs).toFixed(2) + ' spent' : '', x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
+      ? done.map(a => rowHtml(a, x => [x.shipped ? fmt(x.shipped) : '', x.tech, x.video ? '▶ video' : ''].filter(Boolean).join(' · '))).join('')
       : '<div class="empty">No apps shipped yet. App #1 is waiting.</div>';
     $('ideaList').innerHTML = ideas.length
       ? ideas.map(a => rowHtml(a, x => x.pitch || '')).join('')
@@ -355,31 +363,42 @@
   function render() {
     $('startDate').value = state.startDate || '';
     $('targetDate').value = state.targetDate || '';
-    renderStats(); renderGrid(); renderLists();
+    renderStats(); renderGrid(); renderLists(); renderCosts();
   }
 
   function esc(s) { return String(s).replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch])); }
 
-  // Costs
+  // Cost ledger (left panel). Saved in state.costs as [{item, amount}].
   function costTotal(list) { return (list || []).reduce((s, c) => s + (Number(c.amount) || 0), 0); }
   function readCostRows() {
     return [...document.querySelectorAll('#costRows tr')].map(tr => ({
       item: tr.querySelector('.item').value.trim(), amount: Number(tr.querySelector('.amt').value) || 0
-    })).filter(c => c.item || c.amount);
+    }));
   }
   function addCostRow(c = {}) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<td><input class="item" placeholder="Play Store fee, domain, icons..."></td>` +
+    tr.innerHTML = `<td><input class="item" placeholder="Play Store fee, domain..."></td>` +
       `<td><input class="amt" type="number" min="0" step="0.01" placeholder="0.00"></td>` +
       `<td><button class="x" type="button" title="Remove">✕</button></td>`;
     tr.querySelector('.item').value = c.item || '';
     tr.querySelector('.amt').value = c.amount ?? '';
-    tr.querySelector('.x').onclick = () => { tr.remove(); updateCostTotal(); };
-    tr.addEventListener('input', updateCostTotal);
+    tr.querySelector('.x').onclick = () => { tr.remove(); commitCosts(); };
+    tr.addEventListener('input', commitCosts);
     $('costRows').appendChild(tr);
     return tr;
   }
-  function updateCostTotal() { $('costTotal').textContent = '$' + costTotal(readCostRows()).toFixed(2); }
+  let costsDirty = false;
+  function commitCosts() {
+    state.costs = readCostRows().filter(c => c.item || c.amount);
+    try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {}
+    $('costTotal').textContent = '$' + costTotal(state.costs).toFixed(2);
+    renderStats();
+  }
+  function renderCosts() {
+    $('costRows').innerHTML = '';
+    (state.costs || []).forEach(addCostRow);
+    $('costTotal').textContent = '$' + costTotal(state.costs).toFixed(2);
+  }
   $('addCost').onclick = () => { addCostRow().querySelector('.item').focus(); };
 
   // Modal
@@ -390,9 +409,6 @@
     $('modalTitle').textContent = `App #${n}`;
     for (const f of fields) $('f_' + f).value = a[f] ?? (f === 'status' ? 'idea' : '');
     $('f_dead').checked = !!a.dead;
-    $('costRows').innerHTML = '';
-    (a.costs || []).forEach(addCostRow);
-    updateCostTotal();
     $('overlay').classList.add('open');
     $('f_name').focus();
   }
@@ -401,7 +417,6 @@
     const a = { n: editing };
     for (const f of fields) { const v = $('f_' + f).value.trim(); if (v) a[f] = v; }
     if ($('f_dead').checked) a.dead = true;
-    const costs = readCostRows(); if (costs.length) a.costs = costs;
     if (!a.name && a.status === 'idea') delete a.status;
     if (a.status === 'building' && !a.started) a.started = todayStr();
     if ((a.status === 'shipped' || a.status === 'video') && !a.shipped) a.shipped = todayStr();
