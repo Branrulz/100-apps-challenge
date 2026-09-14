@@ -87,11 +87,11 @@ def card(lines, sub=None, small=None):
 CLIP = os.path.join(SC, 'clips', 'demo.mp4')
 class Vid:
     """Streams frames of a clip range through ffmpeg; frame(0) is cached for crossfades."""
-    def __init__(self, path, start, dur):
-        self.path, self.start, self.dur = path, start, dur; self.proc = None; self.i = -1; self.first = None; self.last = None
+    def __init__(self, path, start, dur, speed=1.0):
+        self.path, self.start, self.dur, self.speed = path, start, dur, speed; self.proc = None; self.i = -1; self.first = None; self.last = None
     def _open(self):
         ff = imageio_ffmpeg.get_ffmpeg_exe()
-        self.proc = subprocess.Popen([ff, '-ss', str(self.start), '-t', str(self.dur + 0.2), '-i', self.path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-'],
+        self.proc = subprocess.Popen([ff, '-ss', str(self.start), '-t', str(self.dur + 0.3), '-i', self.path, '-vf', f'setpts=PTS/{self.speed}', '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-'],
                                      stdout=subprocess.PIPE, stderr=subprocess.DEVNULL); self.i = -1
     def frame(self, i):
         if i == 0 and self.first is not None: return self.first
@@ -112,18 +112,17 @@ def rect(cx, cy, w): h = w * 9 / 16; return (cx - w / 2, cy - h / 2, cx + w / 2,
 LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
 AD = Image.open(os.path.join(OUT, '..', 'screenshots', '08-transition-ad' + ('-linkedin' if LINKEDIN else '') + '.png')).convert('RGB').resize((W, H), Image.LANCZOS)
 SEG = [
-    (3.0, 'img', (AD,), []),
-    (4.0, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), []),
-    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), []),
-    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), [(0.2, 3.3, 'ONE SQUARE|PER APP', 'right')]),
-    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), [(0.2, 3.2, 'CLICK|A SQUARE', 'leftsm'), (3.6, 7.0, 'HOURS|BY WEEK', 'leftsm'), (7.4, 13.2, 'DATED|NOTES', 'leftsm')]),
-    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), [(0.2, 4.4, 'DRAG TO|REARRANGE', 'leftsm'), (4.8, 10.2, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
-    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), [(0.2, 4.3, 'COSTS AND HOURS|ADD THEMSELVES UP', 'bottomleft')]),
-    (5.0, 'kb', (rect(2000, 2950, 2400), rect(2000, 3050, 2300)), [(0.2, 4.8, 'NOTHING|HIDDEN', 'rightsm')]),
-    (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
+    (2.0, 'img', (AD,), []),
+    (2.5, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), []),
+    (3.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), []),
+    (2.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), [(0.1, 2.4, 'ONE SQUARE|PER APP', 'right')]),
+    (8.5, 'vid', (Vid(CLIP, 0.6, 13.6, 1.6),), [(0.1, 2.2, 'CLICK|A SQUARE', 'leftsm'), (2.4, 4.6, 'HOURS|BY WEEK', 'leftsm'), (4.8, 8.3, 'DATED|NOTES', 'leftsm')]),
+    (6.0, 'vid', (Vid(CLIP, 14.2, 10.5, 1.75),), [(0.1, 2.8, 'DRAG TO|REARRANGE', 'leftsm'), (3.0, 5.8, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
+    (2.5, 'kb', (rect(2000, 2950, 2400), rect(2000, 3050, 2300)), [(0.1, 2.4, 'NOTHING|HIDDEN', 'rightsm')]),
+    (3.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
                else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), []),
 ]
-XF = 0.5  # crossfade seconds
+XF = 0.35  # crossfade seconds
 
 frames = []
 def seg_frame(seg, t):
