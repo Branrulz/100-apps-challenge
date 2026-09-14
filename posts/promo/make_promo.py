@@ -15,7 +15,7 @@ def font(size, bold=True):
         if os.path.exists(p): return ImageFont.truetype(p, size)
     return ImageFont.load_default()
 
-F_TITLE = font(120); F_SUB = font(52, False); F_CAP = font(44); F_SMALL = font(36, False)
+F_TITLE = font(120); F_SUB = font(52, False); F_CAP = font(54); F_SMALL = font(36, False)
 
 def ease(t): return 0.5 - 0.5 * math.cos(math.pi * t)
 
@@ -36,7 +36,7 @@ def caption(img, text):
     if not text: return img
     d = ImageDraw.Draw(img, 'RGBA')
     tw = d.textlength(text, font=F_CAP)
-    pad = 28; bw = tw + pad * 2; bh = 44 + pad * 2
+    pad = 30; bw = tw + pad * 2; bh = 56 + pad * 2
     x = (W - bw) / 2; y = H - bh - 48
     d.rounded_rectangle([x, y, x + bw, y + bh], radius=14, fill=(15, 17, 21, 215))
     d.text((x + pad, y + pad - 4), text, font=F_CAP, fill=WHITE)
@@ -85,13 +85,13 @@ LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
 AD = Image.open(os.path.join(OUT, '..', 'screenshots', '08-transition-ad' + ('-linkedin' if LINKEDIN else '') + '.png')).convert('RGB').resize((W, H), Image.LANCZOS)
 SEG = [
     (3.0, 'img', (AD,), None),
-    (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
-    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
-    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red building, yellow shipped, green has a video.'),
-    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), 'Click a square. Dates, hours by week, costs, and a dated note.'),
-    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), 'Drag a square to rearrange. Everything moves with it.'),
-    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
-    (5.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
+    (4.0, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), None),
+    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'Seven live numbers: shipped, videos, in progress, hours, revenue, spent.'),
+    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red is building, yellow shipped, green has a video.'),
+    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), 'Click any square: dates, hours by week, costs, and dated notes.'),
+    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), 'Drag to rearrange. Everything moves with the square.'),
+    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Costs and weekly hours add themselves up.'),
+    (5.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, and dropped. All on the board.'),
     (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
                else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
 ]
