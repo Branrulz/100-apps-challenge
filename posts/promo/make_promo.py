@@ -114,7 +114,7 @@ AD = Image.open(os.path.join(OUT, '..', 'screenshots', '08-transition-ad' + ('-l
 SEG = [
     (3.0, 'img', (AD,), []),
     (4.0, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), []),
-    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), [(0.3, 5.7, 'SEVEN LIVE NUMBERS', 'bottomleft')]),
+    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), []),
     (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), [(0.2, 3.3, 'ONE SQUARE|PER APP', 'right')]),
     (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), [(0.2, 3.2, 'CLICK|A SQUARE', 'leftsm'), (3.6, 7.0, 'HOURS|BY WEEK', 'leftsm'), (7.4, 13.2, 'DATED|NOTES', 'leftsm')]),
     (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), [(0.2, 4.4, 'DRAG TO|REARRANGE', 'leftsm'), (4.8, 10.2, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
