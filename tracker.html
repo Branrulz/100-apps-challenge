@@ -807,6 +807,14 @@
 
   if (!state.startDate) state.startDate = todayStr();
   render();
+  // Deep link: tracker.html#app=8 or #app=Open%20Industries%20Project opens that square
+  const m = /[#&]app=([^&]+)/.exec(location.hash);
+  if (m) {
+    const key = decodeURIComponent(m[1]);
+    const hit = /^\d+$/.test(key) ? state.apps[Number(key) - 1] : state.apps.find(a => (a.name || '').toLowerCase() === key.toLowerCase());
+    if (hit) openModal(hit.n);
+    history.replaceState(null, '', location.pathname);
+  }
 })();
 </script>
 </body>
