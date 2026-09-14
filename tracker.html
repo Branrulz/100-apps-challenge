@@ -378,6 +378,12 @@
       s.ideasV2 = true;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
+    if (!s.addedOIP && !s.apps.some(a => a.name === 'Open Industries Project')) {
+      const slot = s.apps.find(a => !a.name && a.n > 6);
+      if (slot) Object.assign(slot, { name: 'Open Industries Project', status: 'building', started: '2026-09-14' });
+      s.addedOIP = true;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
       s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
