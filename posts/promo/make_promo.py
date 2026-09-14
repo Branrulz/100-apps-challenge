@@ -42,6 +42,34 @@ def caption(img, text):
     d.text((x + pad, y + pad - 4), text, font=F_CAP, fill=WHITE)
     return img
 
+F_BIG = font(108); F_MED = font(78); F_KICK = font(40)
+def title(img, beats, t):
+    """beats: list of (start, end, text, pos). pos = 'left' | 'right' | 'bottomleft'. Slide+fade in, fade out."""
+    for (b0, b1, text, pos) in beats:
+        if not (b0 <= t < b1): continue
+        a_in = min(1, (t - b0) / 0.45); a_out = min(1, (b1 - t) / 0.4); a = ease(min(a_in, a_out))
+        if a <= 0: continue
+        lines = text.split('|')
+        d = ImageDraw.Draw(img, 'RGBA')
+        small = pos in ('leftsm', 'rightsm'); F = F_MED if small else F_BIG; LH = 82 if small else 112
+        lw = max(d.textlength(l, font=F) for l in lines); lh = LH * len(lines)
+        pad = 30 if small else 34; bw = lw + pad * 2 + 22; bh = lh + pad * 2
+        if pos == 'left': x, y = 70, H // 2 - bh // 2
+        elif pos == 'leftsm': x, y = 40, H // 2 - bh // 2
+        elif pos == 'rightsm': x, y = W - bw - 40, H // 2 - bh // 2
+        elif pos == 'right': x, y = W - bw - 70, H // 2 - bh // 2
+        elif pos == 'top': x, y = 70, 150
+        elif pos == 'topright': x, y = W - bw - 70, 150
+        else: x, y = 70, H - bh - 90
+        slide = int((1 - a) * 60) * (1 if pos.startswith('right') or pos == 'topright' else -1)
+        x += slide
+        al = int(235 * a)
+        d.rounded_rectangle([x, y, x + bw, y + bh], radius=12, fill=(10, 12, 16, int(215 * a)))
+        d.rectangle([x, y, x + 12, y + bh], fill=(255, 77, 77, al))
+        for i, l in enumerate(lines):
+            d.text((x + pad + 22, y + pad - 8 + i * LH), l, font=F, fill=(240, 242, 246, al))
+    return img
+
 def card(lines, sub=None, small=None):
     img = Image.new('RGB', (W, H), BG); d = ImageDraw.Draw(img)
     y = H / 2 - 120 if sub else H / 2 - 60
@@ -84,22 +112,22 @@ def rect(cx, cy, w): h = w * 9 / 16; return (cx - w / 2, cy - h / 2, cx + w / 2,
 LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
 AD = Image.open(os.path.join(OUT, '..', 'screenshots', '08-transition-ad' + ('-linkedin' if LINKEDIN else '') + '.png')).convert('RGB').resize((W, H), Image.LANCZOS)
 SEG = [
-    (3.0, 'img', (AD,), None),
-    (4.0, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), None),
-    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'Seven live numbers: shipped, videos, in progress, hours, revenue, spent.'),
-    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red is building, yellow shipped, green has a video.'),
-    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), 'Click any square: dates, hours by week, costs, and dated notes.'),
-    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), 'Drag to rearrange. Everything moves with the square.'),
-    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Costs and weekly hours add themselves up.'),
-    (5.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, and dropped. All on the board.'),
+    (3.0, 'img', (AD,), []),
+    (4.0, 'card', ('100 Apps Challenge', 'Building 100 apps. Tracking every one.' if LINKEDIN else 'Blue Collar to Code', None), []),
+    (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), [(0.3, 5.7, 'SEVEN LIVE NUMBERS', 'bottomleft')]),
+    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), [(0.2, 3.3, 'ONE SQUARE|PER APP', 'right')]),
+    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), [(0.2, 3.2, 'CLICK|A SQUARE', 'leftsm'), (3.6, 7.0, 'HOURS|BY WEEK', 'leftsm'), (7.4, 13.2, 'DATED|NOTES', 'leftsm')]),
+    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), [(0.2, 4.4, 'DRAG TO|REARRANGE', 'leftsm'), (4.8, 10.2, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
+    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), [(0.2, 4.3, 'COSTS AND HOURS|ADD THEMSELVES UP', 'bottomleft')]),
+    (5.0, 'kb', (rect(2000, 2950, 2400), rect(2000, 3050, 2300)), [(0.2, 4.8, 'NOTHING|HIDDEN', 'rightsm')]),
     (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
-               else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
+               else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), []),
 ]
 XF = 0.5  # crossfade seconds
 
 frames = []
 def seg_frame(seg, t):
-    dur, kind, args, cap = seg
+    dur, kind, args, beats = seg
     if kind == 'card': img = card(*args)
     elif kind == 'img':
         # slow push-in on a still
@@ -108,7 +136,7 @@ def seg_frame(seg, t):
     elif kind == 'vid': img = args[0].frame(int(round(t * FPS))).copy()
     elif kind == 'kbm': img = kb_frame(args[0], args[1], t / dur, MODAL)
     else: img = kb_frame(args[0], args[1], t / dur)
-    return caption(img, cap)
+    return title(img, beats, t)
 
 total = sum(s[0] for s in SEG)
 print('duration', total, 's')
