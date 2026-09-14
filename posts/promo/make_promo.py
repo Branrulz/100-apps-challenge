@@ -56,6 +56,25 @@ def card(lines, sub=None, small=None):
         sw = d.textlength(small, font=F_SMALL); d.text(((W - sw) / 2, H - 140), small, font=F_SMALL, fill=MUTED)
     return img
 
+CLIP = os.path.join(SC, 'clips', 'demo.mp4')
+class Vid:
+    """Streams frames of a clip range through ffmpeg; frame(0) is cached for crossfades."""
+    def __init__(self, path, start, dur):
+        self.path, self.start, self.dur = path, start, dur; self.proc = None; self.i = -1; self.first = None; self.last = None
+    def _open(self):
+        ff = imageio_ffmpeg.get_ffmpeg_exe()
+        self.proc = subprocess.Popen([ff, '-ss', str(self.start), '-t', str(self.dur + 0.2), '-i', self.path, '-f', 'rawvideo', '-pix_fmt', 'rgb24', '-s', f'{W}x{H}', '-r', str(FPS), '-'],
+                                     stdout=subprocess.PIPE, stderr=subprocess.DEVNULL); self.i = -1
+    def frame(self, i):
+        if i == 0 and self.first is not None: return self.first
+        if self.proc is None: self._open()
+        while self.i < i:
+            raw = self.proc.stdout.read(W * H * 3)
+            if len(raw) < W * H * 3: return self.last or self.first
+            self.last = Image.frombytes('RGB', (W, H), raw); self.i += 1
+            if self.i == 0: self.first = self.last.copy()
+        return self.last
+
 def fade(a, b, t):
     return Image.blend(a, b, ease(t))
 
@@ -68,11 +87,11 @@ SEG = [
     (3.0, 'img', (AD,), None),
     (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
     (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
-    (4.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red building, yellow shipped, green has a video.'),
-    (2.5, 'kb', (rect(1600, 1050, 2000), rect(1690, 900, 1100)), 'Open a square.'),
-    (8.0, 'kbm', (rect(1590, 780, 1900), rect(1590, 2150, 1900)), 'Dates, hours by week, costs, and dated notes. Per app.'),
-    (6.0, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
-    (6.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
+    (3.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red building, yellow shipped, green has a video.'),
+    (13.5, 'vid', (Vid(CLIP, 0.6, 13.5),), 'Click a square. Dates, hours by week, costs, and a dated note.'),
+    (10.5, 'vid', (Vid(CLIP, 14.2, 10.5),), 'Drag a square to rearrange. Everything moves with it.'),
+    (4.5, 'kb', (rect(1600, 900, 3200), rect(1600, 800, 2900)), 'Every dollar to production. Every hour, by week, by app.'),
+    (5.0, 'kb', (rect(1600, 2950, 2400), rect(1600, 3050, 2300)), 'Building, shipped, abandoned. Nothing hidden.'),
     (5.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
                else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), None),
 ]
@@ -86,6 +105,7 @@ def seg_frame(seg, t):
         # slow push-in on a still
         z = 1 + 0.04 * ease(t / dur); cw, ch = int(W / z), int(H / z)
         img = args[0].crop(((W - cw) // 2, (H - ch) // 2, (W + cw) // 2, (H + ch) // 2)).resize((W, H), Image.LANCZOS)
+    elif kind == 'vid': img = args[0].frame(int(round(t * FPS))).copy()
     elif kind == 'kbm': img = kb_frame(args[0], args[1], t / dur, MODAL)
     else: img = kb_frame(args[0], args[1], t / dur)
     return caption(img, cap)
