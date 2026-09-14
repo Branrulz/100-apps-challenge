@@ -117,7 +117,7 @@ SEG = [
     (3.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), []),
     (2.5, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), [(0.1, 2.4, 'ONE SQUARE|PER APP', 'right')]),
     (8.5, 'vid', (Vid(CLIP, 0.6, 13.6, 1.6),), [(0.1, 2.2, 'CLICK|A SQUARE', 'leftsm'), (2.4, 4.6, 'HOURS|BY WEEK', 'leftsm'), (4.8, 8.3, 'DATED|NOTES', 'leftsm')]),
-    (6.0, 'vid', (Vid(CLIP, 14.2, 10.5, 1.75),), [(0.1, 2.8, 'DRAG TO|REARRANGE', 'leftsm'), (3.0, 5.8, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
+    (6.0, 'vid', (Vid(CLIP, 15.0, 10.5, 1.75),), [(0.1, 2.8, 'DRAG TO|REARRANGE', 'leftsm'), (3.0, 5.8, 'EVERYTHING|MOVES|WITH IT', 'leftsm')]),
     (2.5, 'kb', (rect(2000, 2950, 2400), rect(2000, 3050, 2300)), [(0.1, 2.4, 'NOTHING|HIDDEN', 'rightsm')]),
     (3.0, 'card', ('100 Apps Challenge', 'Honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge') if LINKEDIN
                else ('Blue Collar to Code', '100 apps, honest numbers, real lessons learned', 'github.com/Branrulz/100-apps-challenge'), []),
