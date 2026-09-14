@@ -1,4 +1,4 @@
-# Promo video narration (41 s)
+# Promo video narration (44 s)
 
 Two files, same cut:
 - `100-apps-promo-linkedin.mp4`: opens and closes on "100 Apps Challenge", no channel name. Use for LinkedIn.
@@ -9,14 +9,15 @@ On-screen captions match each line, so read at a normal pace and you'll land on 
 
 | Time | On screen | Say |
 |------|-----------|-----|
-| 0:00 - 0:04 | Title card | I was let go from factory automation. So I started building apps. A few apps in, the idea hit me: build a hundred. |
-| 0:04 - 0:10 | Stat tiles: shipped, videos, in progress, hours, revenue, spent | A project that size needs managing. So before the next app, I built the scoreboard. |
-| 0:10 - 0:14 | Hold on the colored row of the grid | One square per app. Red is building, yellow shipped, green has a video up. The slash means I killed it on purpose. |
-| 0:14 - 0:16 | Zoom toward square 6 | Every square opens. |
-| 0:16 - 0:24 | Pan down the open square: dates, hours by week, costs, dated notes | Start and ship dates. Hours by week. What it cost. And a dated note every time I learn something. That's where the real lessons live. |
-| 0:24 - 0:30 | Full board with costs and weekly hours panels | Every dollar it took to get to production. Every hour, by week, by app. |
-| 0:30 - 0:36 | Lists: currently building, shipped, abandoned | What I'm building, what shipped, what I dropped. Nothing gets hidden. |
-| 0:36 - 0:41 | End card with the repo link | LinkedIn: One hundred apps. Honest numbers. Real lessons learned. The whole dataset is in a public repo. / YouTube: same, then "Follow along. I'm finding out in public." |
+| 0:00 - 0:03 | Transition frame: gray spreadsheet, bright tracker | I used to track everything in a spreadsheet. Then I built this. |
+| 0:03 - 0:07 | Title card | I was let go from factory automation. So I started building apps. A few apps in, the idea hit me: build a hundred. |
+| 0:07 - 0:13 | Stat tiles: shipped, videos, in progress, hours, revenue, spent | A project that size needs managing. So before the next app, I built the scoreboard. |
+| 0:13 - 0:17 | Hold on the colored row of the grid | One square per app. Red is building, yellow shipped, green has a video up. The slash means I killed it on purpose. |
+| 0:17 - 0:19 | Zoom toward square 6 | Every square opens. |
+| 0:19 - 0:27 | Pan down the open square: dates, hours by week, costs, dated notes | Start and ship dates. Hours by week. What it cost. And a dated note every time I learn something. That's where the real lessons live. |
+| 0:27 - 0:33 | Full board with costs and weekly hours panels | Every dollar it took to get to production. Every hour, by week, by app. |
+| 0:33 - 0:39 | Lists: currently building, shipped, abandoned | What I'm building, what shipped, what I dropped. Nothing gets hidden. |
+| 0:39 - 0:44 | End card with the repo link | LinkedIn: One hundred apps. Honest numbers. Real lessons learned. The whole dataset is in a public repo. / YouTube: same, then "Follow along. I'm finding out in public." |
 
 ## Recording tips
 - Phone voice memo or the laptop mic is fine. Sit close, quiet room, no fan.
@@ -25,6 +26,5 @@ On-screen captions match each line, so read at a normal pace and you'll land on 
 - If a line runs long, cut words, not speed.
 
 ## Regenerate
-The video is built from a render of tracker.html with your current data.
-`python make_promo.py <scratch dir> posts/promo` for YouTube, add `--linkedin` for the LinkedIn cut.
-Ask Claude to re-render when the numbers change.
+`python render_all.py` rebuilds every screenshot, the spreadsheet split, the ad frames, and both videos
+from the live tracker data, with demo-only renames applied. Ask Claude to run it when the numbers change.

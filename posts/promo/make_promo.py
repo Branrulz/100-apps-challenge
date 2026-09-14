@@ -63,7 +63,9 @@ def fade(a, b, t):
 # crop rects are in page.png pixel coords (3200 wide). All 16:9.
 def rect(cx, cy, w): h = w * 9 / 16; return (cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2)
 LINKEDIN = '--linkedin' in sys.argv  # no channel branding, just the challenge
+AD = Image.open(os.path.join(OUT, '..', 'screenshots', '08-transition-ad' + ('-linkedin' if LINKEDIN else '') + '.png')).convert('RGB').resize((W, H), Image.LANCZOS)
 SEG = [
+    (3.0, 'img', (AD,), None),
     (4.0, 'card', ('100 Apps Challenge', None if LINKEDIN else 'Blue Collar to Code', None), None),
     (6.0, 'kb', (rect(1600, 560, 2400), rect(1600, 420, 1800)), 'One project. 100 apps. A scoreboard.'),
     (4.0, 'kb', (rect(1600, 1000, 2200), rect(1600, 1050, 2000)), 'One square per app. Red building, yellow shipped, green has a video.'),
@@ -80,6 +82,10 @@ frames = []
 def seg_frame(seg, t):
     dur, kind, args, cap = seg
     if kind == 'card': img = card(*args)
+    elif kind == 'img':
+        # slow push-in on a still
+        z = 1 + 0.04 * ease(t / dur); cw, ch = int(W / z), int(H / z)
+        img = args[0].crop(((W - cw) // 2, (H - ch) // 2, (W + cw) // 2, (H + ch) // 2)).resize((W, H), Image.LANCZOS)
     elif kind == 'kbm': img = kb_frame(args[0], args[1], t / dur, MODAL)
     else: img = kb_frame(args[0], args[1], t / dur)
     return caption(img, cap)
