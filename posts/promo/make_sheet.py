@@ -6,7 +6,7 @@ SC = sys.argv[1]; OUT = sys.argv[2]
 sys.path.insert(0, SC)
 from chrome_ls import latest_state
 
-d = latest_state()
+d = json.load(open(os.environ['DEMO_STATE'])) if os.environ.get('DEMO_STATE') else latest_state()
 apps = [a for a in d['apps'] if a.get('name')]
 STATUS = {'idea': 'Idea', 'building': 'Building', 'shipped': 'Shipped', 'video': 'Video published'}
 def cost(a): return sum(float(c.get('amount') or 0) for c in a.get('costs') or [])
