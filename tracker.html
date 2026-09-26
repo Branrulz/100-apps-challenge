@@ -384,6 +384,18 @@
       s.addedOIP = true;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
+    if (!s.addedStepCoach && !s.apps.some(a => a.name === 'Step Coach')) {
+      const slot = s.apps.find(a => !a.name && a.n > 6);
+      if (slot) Object.assign(slot, {
+        name: 'Step Coach',
+        pitch: 'Spoken step-goal coach that talks through Meta Ray-Ban glasses: milestones, streaks, beat-yesterday, sit-too-long nudges',
+        tech: 'Flutter (Android) / text-to-speech; plus a Ray-Ban Display web app (React + Meta UI Toolkit)',
+        status: 'building',
+        started: '2026-09-26',
+      });
+      s.addedStepCoach = true;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
       s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
