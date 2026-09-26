@@ -48,3 +48,4 @@ Things from the plant floor that nobody has built well yet:
 7. Shift Pay Calculator
 8. Motor & Wire Sizer
 9. Open Industries Project (building, started 2026-09-14)
+10. Step Coach (building, started 2026-09-26): talks through Meta Ray-Ban glasses; code in Desktop/Meta/audio_coach
