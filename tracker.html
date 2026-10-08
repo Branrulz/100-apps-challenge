@@ -303,7 +303,7 @@
     { name: 'ChartinSpace', pitch: 'Unicorn toot-platformer game', tech: 'Flutter (ported from Unity)', status: 'shipped', started: '2026-05-05' },
     { name: 'Haynes Exchange', pitch: 'Automated trading bot for Kalshi prediction markets', tech: 'Python / Kalshi API', status: 'shipped', started: '2026-09-04' },
     { name: 'Flock Camera Tracker', pitch: 'Map of ALPR / Flock cameras with state-by-state laws', tech: 'Web app + OpenStreetMap data pipeline', status: 'shipped', started: '2026-09-09' },
-    { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer with 40 scenarios', tech: 'JavaScript / Node', status: 'shipped', started: '2026-09-10' },
+    { name: 'PLC Troubleshooter', pitch: 'Vendor-neutral PLC fault-finding trainer: 133 scenarios, 15 modules, random faults, certificate and a ladder Logic Lab. Live on Google Play', tech: 'Flutter / Dart (Android), Google Play Billing; started as a JavaScript web app', status: 'shipped', started: '2026-09-10', shipped: '2026-10-06', link: 'https://play.google.com/store/apps/details?id=com.plctroubleshooter.plc_troubleshooter' },
     { name: '100 Apps', pitch: 'Companion app for the channel: factory-style "days since" counters and the shower-counter gag', tech: 'TBD', status: 'building', started: '2026-09-13' },
   ];
   const IDEAS = [
@@ -394,6 +394,21 @@
         started: '2026-09-26',
       });
       s.addedStepCoach = true;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
+    // 2026-10-07: PLC Troubleshooter went public on Google Play (production, 1.0.2).
+    if (!s.plcPlayLive) {
+      const plc = s.apps.find(a => a.name === 'PLC Troubleshooter');
+      if (plc) {
+        plc.pitch = 'Vendor-neutral PLC fault-finding trainer: 133 scenarios, 15 modules, random faults, certificate and a ladder Logic Lab. Live on Google Play';
+        plc.tech = 'Flutter / Dart (Android), Google Play Billing; started as a JavaScript web app';
+        plc.status = plc.status === 'video' ? 'video' : 'shipped';
+        plc.shipped = '2026-10-06';
+        plc.link = 'https://play.google.com/store/apps/details?id=com.plctroubleshooter.plc_troubleshooter';
+        const add = 'Published to Google Play production 2026-10-06 (free app, $29.99 one-time unlock). Closed test via Testers Community, 12 testers, 0 bugs reported.';
+        plc.notes = plc.notes ? (plc.notes.includes('production 2026-10-06') ? plc.notes : plc.notes + ' ' + add) : add;
+      }
+      s.plcPlayLive = true;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
     if (!s.addedPhotoSorter && !s.apps.some(a => a.name === 'Photo Sorter')) {

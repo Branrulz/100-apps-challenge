@@ -26,7 +26,7 @@ Keep the latest export in this folder.
 | 2 | ChartinSpace | 2026-05-05 | Unicorn toot-platformer game | Flutter (ported from Unity) |
 | 3 | Haynes Exchange | 2026-09-04 | Automated Kalshi prediction-market trader | Python / Kalshi API |
 | 4 | Flock Camera Tracker | 2026-09-09 | Map of ALPR / Flock cameras with state laws | Web + OpenStreetMap pipeline |
-| 5 | PLC Troubleshooter | 2026-09-10 | Vendor-neutral PLC fault-finding trainer, 40 scenarios | JavaScript / Node |
+| 5 | PLC Troubleshooter | 2026-09-10 | Vendor-neutral PLC fault-finding trainer, 133 scenarios. **Live on [Google Play](https://play.google.com/store/apps/details?id=com.plctroubleshooter.plc_troubleshooter)** since 2026-10-06 | Flutter / Dart, Play Billing |
 | 6 | 100 Apps | 2026-09-13 | Channel companion app: factory-style "days since" counters (in progress) | TBD |
 
 ## Idea backlog
