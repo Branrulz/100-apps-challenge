@@ -49,4 +49,4 @@ Things from the plant floor that nobody has built well yet:
 8. Motor & Wire Sizer
 9. Open Industries Project (building, started 2026-09-14)
 10. Step Coach (building, started 2026-09-26): talks through Meta Ray-Ban glasses; code in Desktop/Meta/audio_coach
-11. Photo Sorter (building, started 2026-10-07): sorts family vs work photos on the phone, free Wi-Fi transfer to a computer; code in C:/Users/Brand/dev/photo_sorter
+11. Trade Shots (building, started 2026-10-07): sorts work vs family photos on the phone, free Wi-Fi transfer to a computer; code in C:/Users/Brand/dev/trade_shots

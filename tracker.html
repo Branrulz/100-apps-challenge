@@ -423,6 +423,12 @@
       s.addedPhotoSorter = true;
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     }
+    if (!s.renamedTradeShots) {
+      const ps = s.apps.find(a => a.name === 'Photo Sorter');
+      if (ps) ps.name = 'Trade Shots';
+      s.renamedTradeShots = true;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+    }
     if (!s.apps[5].name && !s.apps.some(a => a.name === '100 Apps')) {
       s.apps[5] = Object.assign({ n: 6 }, SEED[5]);
       try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
