@@ -43,13 +43,14 @@
     {
       "n": 5,
       "name": "PLC Troubleshooter",
-      "pitch": "Vendor-neutral PLC fault-finding trainer with 40 scenarios",
+      "pitch": "Vendor-neutral PLC fault-finding trainer: 133 scenarios, 15 modules, random faults, certificate and a ladder Logic Lab. Live on Google Play",
       "status": "shipped",
-      "tech": "JavaScript / Node",
-      "shipped": "2026-09-13",
+      "tech": "Flutter / Dart (Android), Google Play Billing; started as a JavaScript web app",
+      "shipped": "2026-10-06",
       "hours": "18",
-      "notes": "Had issues with Google Play syncing up with testing. Learned how to produce a free app with a paid unlock. Also how to setup promo keys.",
-      "started": "2026-09-10"
+      "notes": "Had issues with Google Play syncing up with testing. Learned how to produce a free app with a paid unlock. Also how to setup promo keys. Published to Google Play production 2026-10-06 (free app, $29.99 one-time unlock).",
+      "started": "2026-09-10",
+      "link": "https://play.google.com/store/apps/details?id=com.plctroubleshooter.plc_troubleshooter"
     },
     {
       "n": 6,
